@@ -1,0 +1,24 @@
+{
+	"schemaVersion": 1,
+	"id": "pingspikeindicator",
+	"version": "${version}",
+	"name": "Ping Spike Indicator",
+	"description": "Shows a lightweight warning when multiplayer ping suddenly becomes meaningfully worse.",
+	"authors": [
+		"mikelcodez"
+	],
+	"license": "CC0-1.0",
+	"icon": "assets/pingspikeindicator/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"dev.mikelcodez.pingspikeindicator.client.PingSpikeIndicatorClient"
+		]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}
