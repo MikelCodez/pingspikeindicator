@@ -85,6 +85,20 @@ class PingSpikeAlertStateTest {
 		assertEquals("", alertState.detailText());
 	}
 
+	@Test
+	void durationChangeDismissesOldAlertAndAppliesToNextSpike() {
+		alertState.onDetectorUpdate(400, 160, detector.update(400, 160));
+
+		alertState.setDisplayDurationMillis(5_000);
+		assertFalse(alertState.isVisibleAt(401));
+		detector.update(500, 125);
+		detector.update(700, 120);
+		alertState.onDetectorUpdate(800, 170, detector.update(800, 170));
+
+		assertTrue(alertState.isVisibleAt(5_799));
+		assertFalse(alertState.isVisibleAt(5_800));
+	}
+
 	private void warmBaseline() {
 		detector.update(0, 100);
 		detector.update(100, 100);

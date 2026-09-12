@@ -8,7 +8,7 @@ import java.util.Objects;
 public final class PingSpikeAlertState {
 	private static final long NOT_VISIBLE = -1;
 
-	private final long displayDurationMillis;
+	private long displayDurationMillis;
 	private long visibleUntilMillis = NOT_VISIBLE;
 	private String detailText = "";
 
@@ -52,6 +52,17 @@ public final class PingSpikeAlertState {
 	public void clear() {
 		visibleUntilMillis = NOT_VISIBLE;
 		detailText = "";
+	}
+
+	/**
+	 * Changes the duration for future alerts and dismisses any alert using the old policy.
+	 */
+	public void setDisplayDurationMillis(long displayDurationMillis) {
+		if (displayDurationMillis < 1) {
+			throw new IllegalArgumentException("displayDurationMillis must be positive");
+		}
+		this.displayDurationMillis = displayDurationMillis;
+		clear();
 	}
 
 	private long expirationTime(long observedAtMillis) {

@@ -11,7 +11,7 @@ import java.util.OptionalInt;
 public final class PingSamplingController {
 	private static final long NO_SAMPLE_DUE = -1;
 
-	private final PingSpikeDetector detector;
+	private PingSpikeDetector detector;
 	private final long sampleIntervalMillis;
 	private boolean sessionActive;
 	private long nextSampleAtMillis = NO_SAMPLE_DUE;
@@ -39,6 +39,15 @@ public final class PingSamplingController {
 
 	public boolean sessionActive() {
 		return sessionActive;
+	}
+
+	/**
+	 * Applies detector policy changes without carrying an old baseline or spike state forward.
+	 */
+	public void replaceDetector(PingSpikeDetector replacement) {
+		detector = Objects.requireNonNull(replacement, "replacement");
+		detector.reset();
+		nextSampleAtMillis = NO_SAMPLE_DUE;
 	}
 
 	public boolean isSampleDue(long observedAtMillis) {

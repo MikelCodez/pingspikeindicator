@@ -12,7 +12,7 @@ Ping Spike Indicator is a client-side Fabric mod that will warn a player when mu
 
 ## Current state
 
-Repository bootstrap is complete. Product detection and HUD behavior have not been implemented.
+Phase 4 adds a small in-game settings screen, opened with the rebindable `O` key by default. Alerts, spike threshold, alert duration, sound, and an optional compact current-ping readout can be configured; the current-ping readout is off by default. Settings are stored locally in a versioned client properties file.
 
 ## Build
 
@@ -28,7 +28,7 @@ On macOS or Linux:
 ./gradlew build
 ```
 
-See [Architecture](docs/ARCHITECTURE.md), [Testing](docs/TESTING.md), [Decisions](docs/DECISIONS.md), and [project status](status.md) for the implementation constraints and current progress.
+See [Architecture](docs/ARCHITECTURE.md), [Testing](docs/TESTING.md), [Decisions](docs/DECISIONS.md), [Known issues](docs/KNOWN_ISSUES.md), and [project status](status.md) for the implementation constraints and current progress.
 
 ## License
 

@@ -1,5 +1,6 @@
 package dev.mikelcodez.pingspikeindicator.client;
 
+import dev.mikelcodez.pingspikeindicator.CurrentPingDisplayState;
 import dev.mikelcodez.pingspikeindicator.PingSpikeAlertState;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
@@ -21,18 +22,32 @@ final class PingSpikeHud {
 	private static final int PADDING = 4;
 	private static final int LINE_GAP = 2;
 	private static final int TOP_MARGIN = 10;
+	private static final int CURRENT_PING_MARGIN = 5;
+	private static final int CURRENT_PING_BACKGROUND = 0x90000000;
 
 	private final Minecraft client;
 	private final ClientMonotonicClock clock;
 	private final PingSpikeAlertState alertState;
+	private final CurrentPingDisplayState currentPingState;
+	private final ClientConfigManager configManager;
 	private String measuredDetailText;
+	private String measuredCurrentPingText;
 	private int detailWidth;
+	private int currentPingWidth;
 	private int titleWidth;
 
-	PingSpikeHud(Minecraft client, ClientMonotonicClock clock, PingSpikeAlertState alertState) {
+	PingSpikeHud(
+			Minecraft client,
+			ClientMonotonicClock clock,
+			PingSpikeAlertState alertState,
+			CurrentPingDisplayState currentPingState,
+			ClientConfigManager configManager
+	) {
 		this.client = client;
 		this.clock = clock;
 		this.alertState = alertState;
+		this.currentPingState = currentPingState;
+		this.configManager = configManager;
 	}
 
 	void register() {
@@ -40,11 +55,16 @@ final class PingSpikeHud {
 	}
 
 	private void render(GuiGraphics graphics, net.minecraft.client.DeltaTracker tickCounter) {
-		if (!alertState.isVisibleAt(clock.millis())) {
-			return;
-		}
-
 		Font font = client.font;
+		if (configManager.config().currentPingVisible() && currentPingState.available()) {
+			renderCurrentPing(graphics, font);
+		}
+		if (alertState.isVisibleAt(clock.millis())) {
+			renderAlert(graphics, font);
+		}
+	}
+
+	private void renderAlert(GuiGraphics graphics, Font font) {
 		String detailText = alertState.detailText();
 		if (detailText != measuredDetailText) {
 			measuredDetailText = detailText;
@@ -73,5 +93,20 @@ final class PingSpikeHud {
 				DETAIL_COLOR,
 				true
 		);
+	}
+
+	private void renderCurrentPing(GuiGraphics graphics, Font font) {
+		String currentPingText = currentPingState.text();
+		if (currentPingText != measuredCurrentPingText) {
+			measuredCurrentPingText = currentPingText;
+			currentPingWidth = font.width(currentPingText);
+		}
+
+		int left = CURRENT_PING_MARGIN;
+		int top = CURRENT_PING_MARGIN;
+		int right = left + currentPingWidth + PADDING * 2;
+		int bottom = top + font.lineHeight + PADDING * 2;
+		graphics.fill(left, top, right, bottom, CURRENT_PING_BACKGROUND);
+		graphics.drawString(font, currentPingText, left + PADDING, top + PADDING, DETAIL_COLOR, true);
 	}
 }

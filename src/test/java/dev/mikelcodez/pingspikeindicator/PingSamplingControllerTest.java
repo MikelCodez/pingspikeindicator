@@ -103,4 +103,33 @@ class PingSamplingControllerTest {
 		assertEquals(SAMPLED, spike.status());
 		assertEquals(SPIKE_STARTED, spike.detectorUpdate().orElseThrow().signal());
 	}
+
+	@Test
+	void replacingDetectorClearsOldStateAndUsesNewThreshold() {
+		controller.beginSession();
+		controller.poll(0, OptionalInt.of(100));
+		controller.poll(1_000, OptionalInt.of(100));
+		controller.poll(2_000, OptionalInt.of(100));
+		controller.poll(3_000, OptionalInt.of(100));
+		assertEquals(SPIKE_STARTED, controller.poll(4_000, OptionalInt.of(160))
+				.detectorUpdate().orElseThrow().signal());
+
+		PingSpikeDetector replacement = new PingSpikeDetector(
+				new PingSpikeDetector.Config(8, 4, 100, 20, 200, 5_000)
+		);
+		controller.replaceDetector(replacement);
+
+		assertTrue(controller.sessionActive());
+		assertTrue(controller.isSampleDue(4_001));
+		assertEquals(NORMAL, replacement.state());
+		assertEquals(0, replacement.historySize());
+		controller.poll(4_001, OptionalInt.of(100));
+		controller.poll(5_001, OptionalInt.of(100));
+		controller.poll(6_001, OptionalInt.of(100));
+		controller.poll(7_001, OptionalInt.of(100));
+		assertEquals(PingSpikeDetector.Signal.NONE, controller.poll(8_001, OptionalInt.of(160))
+				.detectorUpdate().orElseThrow().signal());
+		assertEquals(SPIKE_STARTED, controller.poll(9_001, OptionalInt.of(220))
+				.detectorUpdate().orElseThrow().signal());
+	}
 }
