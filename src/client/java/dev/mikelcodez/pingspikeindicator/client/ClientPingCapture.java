@@ -3,6 +3,7 @@ package dev.mikelcodez.pingspikeindicator.client;
 import java.util.OptionalInt;
 
 import dev.mikelcodez.pingspikeindicator.PingSamplingController;
+import dev.mikelcodez.pingspikeindicator.PingSpikeAlertState;
 import dev.mikelcodez.pingspikeindicator.PingSpikeDetector;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
@@ -18,11 +19,13 @@ final class ClientPingCapture {
 	private static final long SAMPLE_INTERVAL_MILLIS = 1_000;
 
 	private final ClientMonotonicClock clock;
+	private final PingSpikeAlertState alertState;
 	private final PingSamplingController controller;
 	private boolean sessionMarkerLogged;
 
-	ClientPingCapture(ClientMonotonicClock clock) {
+	ClientPingCapture(ClientMonotonicClock clock, PingSpikeAlertState alertState) {
 		this.clock = clock;
+		this.alertState = alertState;
 		this.controller = new PingSamplingController(
 				new PingSpikeDetector(PingSpikeDetector.Config.defaults()),
 				SAMPLE_INTERVAL_MILLIS
@@ -69,6 +72,7 @@ final class ClientPingCapture {
 			sessionMarkerLogged = true;
 		}
 		if (update.signal() == PingSpikeDetector.Signal.SPIKE_STARTED) {
+			alertState.onDetectorUpdate(observedAtMillis, latency.orElseThrow(), update);
 			LOGGER.debug("Ping spike start observed by Phase 1 detector");
 		}
 	}
@@ -96,6 +100,7 @@ final class ClientPingCapture {
 		if (controller.sessionActive()) {
 			controller.beginSession();
 		}
+		alertState.clear();
 		sessionMarkerLogged = false;
 	}
 
@@ -103,6 +108,7 @@ final class ClientPingCapture {
 		if (controller.sessionActive()) {
 			controller.endSession();
 		}
+		alertState.clear();
 		sessionMarkerLogged = false;
 	}
 }
