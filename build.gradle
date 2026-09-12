@@ -30,6 +30,9 @@ dependencies {
 
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	testImplementation "org.junit.jupiter:junit-jupiter:5.11.4"
+	testRuntimeOnly "org.junit.platform:junit-platform-launcher:1.11.4"
 }
 
 processResources {
@@ -43,6 +46,41 @@ processResources {
 
 tasks.withType(JavaCompile).configureEach {
 	it.options.release = 21
+}
+
+tasks.withType(Test).configureEach {
+	useJUnitPlatform()
+}
+
+def pureJavaSources = fileTree("src/main/java") {
+	include "**/*.java"
+}
+
+tasks.register("verifyPureJavaBoundaries") {
+	group = "verification"
+	description = "Rejects Minecraft, Fabric, and Mixin imports in the pure Java source set."
+	inputs.files(pureJavaSources)
+
+	doLast {
+		def forbiddenImport = ~/^\s*import\s+(static\s+)?(net\.minecraft|net\.fabricmc|org\.spongepowered\.asm\.mixin)(\.|;).*/
+		def violations = []
+
+		pureJavaSources.files.sort().each { sourceFile ->
+			sourceFile.readLines().eachWithIndex { line, index ->
+				if (line ==~ forbiddenImport) {
+					violations << "${sourceFile}:${index + 1}: ${line.trim()}"
+				}
+			}
+		}
+
+		if (!violations.isEmpty()) {
+			throw new GradleException("Pure Java boundary violations:\n${violations.join('\n')}")
+		}
+	}
+}
+
+tasks.named("check") {
+	dependsOn tasks.named("verifyPureJavaBoundaries")
 }
 
 java {
