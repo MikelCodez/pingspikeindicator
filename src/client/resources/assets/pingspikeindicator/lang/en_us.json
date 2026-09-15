@@ -1,10 +1,14 @@
 {
   "key.pingspikeindicator.open_config": "Open Ping Spike Indicator Settings",
-  "screen.pingspikeindicator.title": "Ping Spike Indicator",
+  "screen.pingspikeindicator.title": "Ping Spike Indicator Settings",
   "option.pingspikeindicator.alerts": "Alerts: %s",
   "option.pingspikeindicator.threshold": "Spike Threshold: %s ms",
   "option.pingspikeindicator.duration": "Alert Duration: %s",
   "option.pingspikeindicator.sound": "Alert Sound: %s",
   "option.pingspikeindicator.current_ping": "Current Ping Display: %s",
-  "value.pingspikeindicator.seconds": "%s seconds"
+  "value.pingspikeindicator.seconds": "%s seconds",
+  "option.pingspikeindicator.alerts.label": "Visual Alerts",
+  "option.pingspikeindicator.sound.label": "Alert Sound",
+  "option.pingspikeindicator.current_ping.label": "Current Ping HUD",
+  "option.pingspikeindicator.accent": "Accent Preview: %s"
 }
