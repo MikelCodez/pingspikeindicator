@@ -85,7 +85,7 @@ final class ClientPingCapture {
 			currentPingState.accept(pingMillis);
 		}
 		if (!sessionMarkerLogged) {
-			LOGGER.info("Multiplayer ping capture active; first valid sample accepted");
+			LOGGER.debug("Multiplayer ping capture active; first valid sample accepted");
 			sessionMarkerLogged = true;
 		}
 		if (update.signal() == PingSpikeDetector.Signal.SPIKE_STARTED && config.alertsEnabled()) {

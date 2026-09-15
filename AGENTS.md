@@ -36,6 +36,7 @@ V1 may only observe state already visible to the client. It must not modify, del
 
 ## Change discipline
 
+- The V1 feature set is frozen at the end of Phase 4. Phase 5 may contain only release hardening, regression tests, validation, and release documentation; defer every new capability to an explicitly authorized post-1.0 phase.
 - Update `status.md` as phase state or validation changes.
 - Record durable architectural choices and meaningful reversals in `docs/DECISIONS.md`.
 - Keep documentation consistent with Gradle and `fabric.mod.json` metadata.

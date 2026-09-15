@@ -37,3 +37,13 @@ Phase 3 renders a compact top-center block for three seconds only when the detec
 Phase 4 uses a Java properties file with an explicit format version because five scalar settings do not justify another dependency. The pure Java loader validates the complete file and falls back to safe defaults on malformed, incomplete, unsupported-version, or out-of-range input. Writes use a sibling temporary file followed by a replacement move. The file lives in Fabric's client config directory and is touched only when the user closes the settings screen.
 
 The configuration screen uses vanilla buttons and one bounded slider, opened by a rebindable `O` key. Mod Menu integration and a separate settings dependency are intentionally omitted from V1. Threshold changes replace and reset the detector so policy state is never mixed; duration and presentation changes remain independent. The optional small current-ping label is off by default, and no analytics, history, graph, drag editor, shader, or blur was added.
+
+## 2026-09-12: V1 release profile and scope freeze
+
+The reviewed 1.0.0 defaults remain an 80 ms absolute spike threshold, 30 ms recovery hysteresis, five-sample warm-up, one-second sampling, one-second recovery hold, and a 20-sample maximum history. This favors a meaningful alert over reacting to ordinary small fluctuations while keeping recovery explicit. The profile is pinned by regression tests, including exact boundary, sustained-spike suppression, interrupted recovery, and later-spike behavior.
+
+V1 scope is frozen for the Minecraft 1.21.11 release. Release hardening adds validation, tests, and documentation only; it does not add packet behavior, networking claims, analytics, history graphs, placement editors, or rendering effects. The first-valid-sample diagnostic is DEBUG-only for release, leaving one concise initialization marker at INFO.
+
+## 2026-09-14: Screen background rendering discipline
+
+In Minecraft 1.21.11, `Screen.renderWithTooltipAndSubtitles` automatically renders the background before invoking `render(GuiGraphics, int, int, float)`. Subclasses must not call `renderBackground` inside `render`. Doing so caused `GuiRenderState.blurBeforeThisStratum()` to be called twice in a single frame, triggering `IllegalStateException: Can only blur once per frame` whenever the user's "Menu Background Blur" setting was greater than 0 (the vanilla default).

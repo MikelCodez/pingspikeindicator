@@ -75,7 +75,6 @@ final class PingSpikeConfigScreen extends Screen {
 
 	@Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-		renderBackground(graphics, mouseX, mouseY, partialTick);
 		super.render(graphics, mouseX, mouseY, partialTick);
 		graphics.drawCenteredString(font, title, width / 2, Math.max(12, height / 2 - 94), 0xFFFFFFFF);
 	}

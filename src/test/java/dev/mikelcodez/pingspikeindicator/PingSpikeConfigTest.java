@@ -49,4 +49,12 @@ class PingSpikeConfigTest {
 		assertEquals(125, detectorConfig.spikeThresholdMillis());
 		assertTrue(detectorConfig.recoveryHysteresisMillis() <= detectorConfig.spikeThresholdMillis());
 	}
+
+	@Test
+	void releaseDefaultsPinTheReviewedDetectorProfile() {
+		PingSpikeDetector.Config reviewedProfile = new PingSpikeDetector.Config(20, 5, 80, 30, 1_000, 5_000);
+
+		assertEquals(reviewedProfile, PingSpikeDetector.Config.defaults());
+		assertEquals(reviewedProfile, PingSpikeConfig.defaults().detectorConfig());
+	}
 }

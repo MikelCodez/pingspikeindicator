@@ -91,6 +91,21 @@ class PingSamplingControllerTest {
 	}
 
 	@Test
+	void repeatedDisconnectCleanupIsIdempotent() {
+		controller.beginSession();
+		controller.poll(0, OptionalInt.of(100));
+
+		controller.endSession();
+		controller.endSession();
+
+		assertFalse(controller.sessionActive());
+		assertEquals(NORMAL, detector.state());
+		assertEquals(0, detector.historySize());
+		controller.beginSession();
+		assertTrue(controller.isSampleDue(1));
+	}
+
+	@Test
 	void acceptedSamplesFlowThroughTheExistingDetector() {
 		controller.beginSession();
 		controller.poll(0, OptionalInt.of(100));

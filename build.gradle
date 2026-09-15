@@ -79,8 +79,29 @@ tasks.register("verifyPureJavaBoundaries") {
 	}
 }
 
+def fabricModMetadata = file("src/main/resources/fabric.mod.json")
+
+tasks.register("verifyClientOnlyMetadata") {
+	group = "verification"
+	description = "Rejects server/common entrypoints or a non-client Fabric environment."
+	inputs.file(fabricModMetadata)
+
+	doLast {
+		def metadata = new groovy.json.JsonSlurper().parse(fabricModMetadata)
+		if (metadata.environment != "client") {
+			throw new GradleException("fabric.mod.json environment must be client")
+		}
+
+		def entrypointKinds = (metadata.entrypoints ?: [:]).keySet() as Set
+		if (entrypointKinds != (["client"] as Set)) {
+			throw new GradleException("fabric.mod.json must contain only a client entrypoint")
+		}
+	}
+}
+
 tasks.named("check") {
 	dependsOn tasks.named("verifyPureJavaBoundaries")
+	dependsOn tasks.named("verifyClientOnlyMetadata")
 }
 
 java {

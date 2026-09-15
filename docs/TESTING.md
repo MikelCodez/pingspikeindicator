@@ -18,6 +18,8 @@ Run the core boundary check directly with:
 .\gradlew.bat verifyPureJavaBoundaries
 ```
 
+The `check` lifecycle also runs `verifyClientOnlyMetadata`, which rejects a non-client environment or any common/server entrypoint in `fabric.mod.json`.
+
 ## Manual verification
 
 Phase 1 is pure Java and has no Minecraft runtime behavior to verify. Its detector and the Phase 2 cadence/session controller are covered by deterministic unit tests. Phase 2 adds client integration and requires these Minecraft 1.21.11 checks with Fabric Loader and Fabric API:
@@ -49,3 +51,20 @@ For Phase 4, open the native settings screen with the rebindable `O` key while c
 8. Replacing that file with invalid text does not crash startup and loads safe defaults.
 
 Do not simulate degradation by modifying packets or generating traffic inside the mod. Record each performed check in `status.md`; unperformed checks remain pending.
+
+## Phase 5 clean-instance release verification
+
+Use a new Minecraft 1.21.11 game directory with only Fabric API and the built Ping Spike Indicator JAR installed. Do not copy the development profile's options or config. Verify:
+
+1. The client reaches the title screen without errors, and `latest.log` lists Ping Spike Indicator 1.0.0 among the loaded mods.
+2. A world opens in singleplayer without a warning, current-ping display, or repeated Ping Spike Indicator log messages.
+3. Joining an unmodified multiplayer server requires no server-side mod and produces no disconnect or protocol warning.
+4. After five or more stable one-second readings, a controlled external latency increase above 80 ms produces one readable top-center warning and one sound.
+5. The warning shows current ping and increase, disappears after about three seconds, stays suppressed during the same spike, and can return after recovery and a later spike.
+6. F1 hides the warning. Check GUI scales 1, 2, 3, 4, and Auto where available: text remains legible, on screen, and clear of the hotbar.
+7. Pressing the default `O` key opens the native settings screen at those GUI scales; every control and Done button remains visible and usable.
+8. Alerts off, sound off, the 25 ms and 500 ms threshold limits, all duration presets, and the opt-in current-ping display behave as labeled.
+9. Settings survive a full restart. A deliberately malformed config falls back to defaults without preventing startup.
+10. Disconnecting, changing servers, and changing dimensions clear visible/current-ping state and require a fresh baseline where applicable.
+11. Chat is readable with default chat opacity. Confirm the development-only PSI-001 symptom does not reproduce on the clean profile or when the mod is removed.
+12. `latest.log` contains at most the single startup INFO marker during normal play; session and spike diagnostics appear only when DEBUG logging is enabled.

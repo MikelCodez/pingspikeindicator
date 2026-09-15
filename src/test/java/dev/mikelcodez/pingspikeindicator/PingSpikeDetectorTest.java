@@ -114,6 +114,18 @@ class PingSpikeDetectorTest {
 	}
 
 	@Test
+	void missingSampleInterruptsRecoveryHold() {
+		warmBaseline();
+		assertEquals(SPIKE_STARTED, detector.update(400, 160).signal());
+
+		assertEquals(SPIKING, detector.update(500, 125).state());
+		assertEquals(MISSING, detector.updateMissing(700).sampleStatus());
+		assertEquals(SPIKING, detector.update(800, 125).state());
+		assertEquals(SPIKING, detector.update(999, 125).state());
+		assertEquals(NORMAL, detector.update(1_000, 125).state());
+	}
+
+	@Test
 	void historyRemainsBoundedAndUsesMostRecentAcceptedSamples() {
 		detector = new PingSpikeDetector(new PingSpikeDetector.Config(5, 3, 500, 100, 0, 5_000));
 

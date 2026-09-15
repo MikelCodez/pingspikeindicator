@@ -33,6 +33,7 @@ class PingSpikeConfigStoreTest {
 
 		assertEquals(expected, result.config());
 		assertFalse(result.recoveredFromInvalidFile());
+		assertFalse(Files.exists(configPath().resolveSibling("pingspikeindicator.properties.tmp")));
 	}
 
 	@Test
@@ -58,6 +59,16 @@ class PingSpikeConfigStoreTest {
 	@Test
 	void unsupportedVersionFallsBackSafely() throws IOException {
 		Files.writeString(configPath(), validText().replace("version=1", "version=2"));
+
+		PingSpikeConfigStore.LoadResult result = store().load();
+
+		assertEquals(PingSpikeConfig.defaults(), result.config());
+		assertTrue(result.recoveredFromInvalidFile());
+	}
+
+	@Test
+	void malformedUnicodeEscapeFallsBackSafely() throws IOException {
+		Files.writeString(configPath(), "version=1\nalertsEnabled=\\uZZZZ\n");
 
 		PingSpikeConfigStore.LoadResult result = store().load();
 

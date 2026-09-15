@@ -64,3 +64,7 @@ Phase 2 logs one startup marker, one first-valid-sample marker per session/world
 `PingSpikeConfig` validates the five V1 user options without depending on Minecraft. `PingSpikeConfigStore` persists them as a versioned properties file in Fabric's client config directory, using a temporary file and replacement move. Missing files use defaults; malformed, incomplete, unsupported-version, and out-of-range files safely fall back to defaults.
 
 The client registers one rebindable key and builds the settings screen from vanilla buttons and a slider. Sampling is already suspended while any screen is open, and opening this screen dismisses a visible alert. A threshold change replaces and resets the detector, preventing a baseline or active spike created under the old policy from leaking into the new one. Other setting changes do not disturb detector state. Current-ping text is formatted only when the one-second sample is accepted and is rendered only when opted in.
+
+## Phase 5 release invariants
+
+The V1 detector profile and all feature boundaries are frozen for the 1.0.0 release candidate. Gradle checks both the pure-Java source boundary and client-only manifest metadata. The render callback creates no project objects per frame: alert and current-ping strings are prepared on state changes, widths are cached, and hidden elements return without drawing. Runtime disk access is limited to loading configuration at initialization and saving it when the settings screen closes.
