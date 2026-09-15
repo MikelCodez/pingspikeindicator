@@ -1,10 +1,10 @@
 # Project status
 
 - Current target: Minecraft 1.21.11, Fabric Loader 0.19.3, Fabric API 0.141.6+1.21.11, Java 21
-- Current phase: Phase 5.3 — COMPLETE (Alert Banner Customization, Sprites, HUD Positioning, and Live Preview)
-- Next phase: Phase 5.4 (Tab list ping bars + numbers & HUD QoL) — NOT STARTED
-- Completed phases: Phase 0 — COMPLETE (repository/bootstrap); Phase 1 — COMPLETE (pure Java detector); Phase 2 — COMPLETE (client ping capture); Phase 3 — COMPLETE (transient HUD alert); Phase 4 — COMPLETE (minimal configuration and user polish); Phase 5.1 — COMPLETE (1.21.11 release hardening & crash fix); Phase 5.2 — COMPLETE (Minecraft-themed blocky settings UI & 50% opacity styling); Phase 5.3 — COMPLETE (Alert Banner Customization, Sprites, HUD Positioning, and Live Preview)
-- Product implementation: Tactical HUD alert with 4 custom pixel-art 32x32 network sprites, configurable HUD screen anchors, live in-screen alert preview, compact blocky settings layout with side-by-side controls, 6 accent color themes, and full config persistence
+- Current phase: Phase 5.4 — COMPLETE (Tab List Ping Numbers, Real-Time Low-Latency Probing, Config Screen Scrolling)
+- Next phase: Phase 5.5 (Configurable In-Game HUD Anchor Drag/Offset) — NOT STARTED
+- Completed phases: Phase 0 — COMPLETE (repository/bootstrap); Phase 1 — COMPLETE (pure Java detector); Phase 2 — COMPLETE (client ping capture); Phase 3 — COMPLETE (transient HUD alert); Phase 4 — COMPLETE (minimal configuration and user polish); Phase 5.1 — COMPLETE (1.21.11 release hardening & crash fix); Phase 5.2 — COMPLETE (Minecraft-themed blocky settings UI & 50% opacity styling); Phase 5.3 — COMPLETE (Alert Banner Customization, Sprites, HUD Positioning, and Live Preview); Phase 5.4 — COMPLETE (Tab List Ping Modes, Real-Time RTT Probing, Dedicated Rows & Modal Scrolling)
+- Product implementation: Tactical HUD alert with 4 custom pixel-art 32x32 network sprites, configurable HUD screen anchors, live in-screen alert preview, compact blocky settings layout with scrolling and scissor-clipping, 6 accent color themes, Tab player list ping rendering with dynamic latency color coding (bars + numbers side-by-side or numbers only), and real-time 500ms active ping request/pong probing for zero-delay spike detection
 
 ## Automated validation
 
@@ -42,6 +42,9 @@
 - Phase 5.2 `git diff --check`: passed on 2026-09-14
 - Phase 5.3 full clean build and tests: passed on 2026-09-15 (14 tasks, 40 tests)
 - Phase 5.3 `git diff --check`: passed on 2026-09-15
+- Phase 5.4 full clean build and tests: passed on 2026-09-15 (14 tasks, 43 tests)
+- Phase 5.4 `verifyPureJavaBoundaries` and `verifyClientOnlyMetadata`: passed on 2026-09-15
+- Phase 5.4 `git diff --check`: passed on 2026-09-15
 
 ## Manual verification
 
@@ -55,3 +58,4 @@
 - Phase 5.1 clean-instance release verification: PASSED (user-reported on 2026-09-14; menu blur crash resolved, settings screen functional without crash on clean profiles/macOS, baseline and spike alert verified)
 - Phase 5.2 manual verification: PASSED (user-reported on 2026-09-14; Minecraft-themed blocky layout, 50% opacity see-through panel, switch toggles with glowing ON / dimmed OFF, vertical text alignment, and live accent color switching verified)
 - Phase 5.3 manual verification: PASSED (user-reported on 2026-09-15; 4 custom 32x32 pixel-art sprites, HUD screen anchor positions, live in-screen test alert preview button, compact side-by-side bottom row, and 6 accent themes verified)
+- Phase 5.4 manual verification: PASSED (user-reported on 2026-09-15; Tab player list ping display modes [Both, Numbers, Vanilla], active 500ms real-time latency probing, zero-delay spike detector alerting, separated settings rows, and smooth modal scrolling with visible bottom controls verified)

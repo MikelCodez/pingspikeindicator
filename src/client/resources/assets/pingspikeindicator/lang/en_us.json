@@ -16,5 +16,6 @@
   "option.pingspikeindicator.accent": "Accent Preview: %s",
   "option.pingspikeindicator.alert_sprite": "Icon: %s",
   "option.pingspikeindicator.hud_position": "Anchor: %s",
+  "option.pingspikeindicator.tab_list_ping": "Tab Ping: %s",
   "option.pingspikeindicator.test_alert": "Test"
 }

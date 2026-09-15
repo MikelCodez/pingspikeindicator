@@ -19,6 +19,7 @@ class PingSpikeConfigTest {
 		assertFalse(defaults.currentPingVisible());
 		assertEquals(AlertSprite.SIGNAL_BARS, defaults.alertSprite());
 		assertEquals(HudPosition.TOP_CENTER, defaults.hudPosition());
+		assertEquals(TabListPingMode.BOTH, defaults.tabListPingMode());
 	}
 
 	@Test
@@ -48,6 +49,7 @@ class PingSpikeConfigTest {
 
 		assertEquals(AlertSprite.SATELLITE, defaults.withAlertSprite(AlertSprite.SATELLITE).alertSprite());
 		assertEquals(HudPosition.TOP_RIGHT, defaults.withHudPosition(HudPosition.TOP_RIGHT).hudPosition());
+		assertEquals(TabListPingMode.NUMBERS_ONLY, defaults.withTabListPingMode(TabListPingMode.NUMBERS_ONLY).tabListPingMode());
 	}
 
 	@Test

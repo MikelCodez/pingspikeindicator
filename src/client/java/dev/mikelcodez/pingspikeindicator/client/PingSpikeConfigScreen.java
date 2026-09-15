@@ -1,22 +1,28 @@
 package dev.mikelcodez.pingspikeindicator.client;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 import dev.mikelcodez.pingspikeindicator.AlertSprite;
 import dev.mikelcodez.pingspikeindicator.HudPosition;
 import dev.mikelcodez.pingspikeindicator.PingSpikeConfig;
+import dev.mikelcodez.pingspikeindicator.TabListPingMode;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.AbstractSliderButton;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.InputWithModifiers;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.Mth;
 
 final class PingSpikeConfigScreen extends Screen {
 	private static final int MODAL_WIDTH = 290;
@@ -53,6 +59,18 @@ final class PingSpikeConfigScreen extends Screen {
 	private boolean testAlertActive = false;
 	private long testAlertEndTime = 0;
 
+	// Scroll state
+	private final List<AbstractWidget> scrollableWidgets = new ArrayList<>();
+	private final List<AbstractWidget> pinnedWidgets = new ArrayList<>();
+	private final List<Integer> initialWidgetY = new ArrayList<>();
+	private double scrollAmount = 0.0;
+	private int maxScroll = 0;
+	private boolean isDraggingScrollBar = false;
+	private int contentTop = 0;
+	private int contentBottom = 0;
+	private int modalLeft = 0;
+	private int modalTop = 0;
+
 	PingSpikeConfigScreen(Screen parent, PingSpikeConfig initialConfig, Consumer<PingSpikeConfig> saveAction) {
 		super(Component.translatable("screen.pingspikeindicator.title"));
 		this.parent = parent;
@@ -62,15 +80,23 @@ final class PingSpikeConfigScreen extends Screen {
 
 	@Override
 	protected void init() {
-		int modalLeft = (width - MODAL_WIDTH) / 2;
-		int modalTop = Math.max(8, (height - MODAL_HEIGHT) / 2);
+		scrollableWidgets.clear();
+		pinnedWidgets.clear();
+		initialWidgetY.clear();
+		scrollAmount = 0.0;
+
+		modalLeft = (width - MODAL_WIDTH) / 2;
+		modalTop = Math.max(8, (height - MODAL_HEIGHT) / 2);
 		int left = modalLeft + (MODAL_WIDTH - CONTROL_WIDTH) / 2;
-		int top = modalTop + 34;
+		contentTop = modalTop + 34;
+		contentBottom = modalTop + MODAL_HEIGHT - CONTROL_HEIGHT - 12;
+
+		int y = contentTop;
 
 		// Row 0: Accent Theme Preview (Full Width)
-		addRenderableWidget(new BlockyButton(
+		addScrollable(new BlockyButton(
 				left,
-				top,
+				y,
 				CONTROL_WIDTH,
 				CONTROL_HEIGHT,
 				accentOption(),
@@ -81,11 +107,12 @@ final class PingSpikeConfigScreen extends Screen {
 				false,
 				null
 		));
+		y += ROW_STEP;
 
 		// Row 1: Visual Alerts Toggle (Full Width)
-		addRenderableWidget(new BlockyButton(
+		addScrollable(new BlockyButton(
 				left,
-				top + ROW_STEP,
+				y,
 				CONTROL_WIDTH,
 				CONTROL_HEIGHT,
 				Component.translatable("option.pingspikeindicator.alerts.label"),
@@ -93,12 +120,13 @@ final class PingSpikeConfigScreen extends Screen {
 				false,
 				() -> workingConfig.alertsEnabled()
 		));
+		y += ROW_STEP;
 
 		// Row 2: Alert Icon (Left Half) + HUD Anchor Position (Right Half)
 		int halfLeft2 = left + HALF_CONTROL_WIDTH + HALF_GAP;
-		addRenderableWidget(new BlockyButton(
+		addScrollable(new BlockyButton(
 				left,
-				top + ROW_STEP * 2,
+				y,
 				HALF_CONTROL_WIDTH,
 				CONTROL_HEIGHT,
 				alertSpriteOption(),
@@ -109,9 +137,9 @@ final class PingSpikeConfigScreen extends Screen {
 				false,
 				null
 		));
-		addRenderableWidget(new BlockyButton(
+		addScrollable(new BlockyButton(
 				halfLeft2,
-				top + ROW_STEP * 2,
+				y,
 				HALF_CONTROL_WIDTH,
 				CONTROL_HEIGHT,
 				hudPositionOption(),
@@ -122,14 +150,16 @@ final class PingSpikeConfigScreen extends Screen {
 				false,
 				null
 		));
+		y += ROW_STEP;
 
 		// Row 3: Spike Threshold Slider (Full Width)
-		addRenderableWidget(new ThresholdSlider(left, top + ROW_STEP * 3));
+		addScrollable(new ThresholdSlider(left, y));
+		y += ROW_STEP;
 
 		// Row 4: Alert Duration (Left Half) + Sound Toggle (Right Half)
-		addRenderableWidget(new BlockyButton(
+		addScrollable(new BlockyButton(
 				left,
-				top + ROW_STEP * 4,
+				y,
 				HALF_CONTROL_WIDTH,
 				CONTROL_HEIGHT,
 				durationOption(),
@@ -145,9 +175,9 @@ final class PingSpikeConfigScreen extends Screen {
 				false,
 				null
 		));
-		addRenderableWidget(new BlockyButton(
+		addScrollable(new BlockyButton(
 				halfLeft2,
-				top + ROW_STEP * 4,
+				y,
 				HALF_CONTROL_WIDTH,
 				CONTROL_HEIGHT,
 				Component.translatable("option.pingspikeindicator.sound.short"),
@@ -155,11 +185,12 @@ final class PingSpikeConfigScreen extends Screen {
 				false,
 				() -> workingConfig.soundEnabled()
 		));
+		y += ROW_STEP;
 
-		// Row 5: Current Ping HUD (Full Width)
-		addRenderableWidget(new BlockyButton(
+		// Row 5: Current Ping HUD (Separate Full Row)
+		addScrollable(new BlockyButton(
 				left,
-				top + ROW_STEP * 5,
+				y,
 				CONTROL_WIDTH,
 				CONTROL_HEIGHT,
 				Component.translatable("option.pingspikeindicator.current_ping.label"),
@@ -167,28 +198,119 @@ final class PingSpikeConfigScreen extends Screen {
 				false,
 				() -> workingConfig.currentPingVisible()
 		));
+		y += ROW_STEP;
 
-		// Row 6: Done (Primary Width: 206px) + Test (Compact Width: 56px to the right of Done)
-		addRenderableWidget(new BlockyButton(
+		// Row 6: Tab List Ping Mode (Separate Full Row)
+		addScrollable(new BlockyButton(
 				left,
-				top + ROW_STEP * 6 + 4,
+				y,
+				CONTROL_WIDTH,
+				CONTROL_HEIGHT,
+				tabListPingOption(),
+				button -> {
+					workingConfig = workingConfig.withTabListPingMode(workingConfig.tabListPingMode().next());
+					button.setMessage(tabListPingOption());
+				},
+				false,
+				null
+		));
+		y += ROW_STEP;
+
+		int totalContentHeight = y - contentTop;
+		int visibleHeight = contentBottom - contentTop;
+		maxScroll = Math.max(0, totalContentHeight - visibleHeight);
+
+		// Pinned Bottom Controls: Done (206px) + Test (56px)
+		int bottomRowY = modalTop + MODAL_HEIGHT - CONTROL_HEIGHT - 6;
+		BlockyButton doneBtn = new BlockyButton(
+				left,
+				bottomRowY,
 				DONE_BUTTON_WIDTH,
 				CONTROL_HEIGHT,
 				Component.translatable("gui.done"),
 				button -> onClose(),
 				true,
 				null
-		));
-		addRenderableWidget(new BlockyButton(
+		);
+		pinnedWidgets.add(doneBtn);
+		addRenderableWidget(doneBtn);
+
+		BlockyButton testBtn = new BlockyButton(
 				left + DONE_BUTTON_WIDTH + HALF_GAP,
-				top + ROW_STEP * 6 + 4,
+				bottomRowY,
 				TEST_BUTTON_WIDTH,
 				CONTROL_HEIGHT,
 				Component.translatable("option.pingspikeindicator.test_alert"),
 				button -> triggerTestAlert(),
 				false,
 				null
-		));
+		);
+		pinnedWidgets.add(testBtn);
+		addRenderableWidget(testBtn);
+	}
+
+	private void addScrollable(AbstractWidget widget) {
+		scrollableWidgets.add(widget);
+		initialWidgetY.add(widget.getY());
+		addRenderableWidget(widget);
+	}
+
+	private void updateScrollPositions() {
+		int offset = (int) Math.round(scrollAmount);
+		for (int i = 0; i < scrollableWidgets.size(); i++) {
+			AbstractWidget widget = scrollableWidgets.get(i);
+			int origY = initialWidgetY.get(i);
+			int newY = origY - offset;
+			widget.setY(newY);
+			widget.visible = (newY + widget.getHeight() >= contentTop && newY <= contentBottom);
+		}
+	}
+
+	@Override
+	public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+		if (maxScroll > 0 && mouseY >= contentTop && mouseY <= contentBottom) {
+			scrollAmount = Mth.clamp(scrollAmount - verticalAmount * 18.0, 0.0, maxScroll);
+			updateScrollPositions();
+			return true;
+		}
+		return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+	}
+
+	@Override
+	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+		if (maxScroll > 0 && event.button() == 0) {
+			int scrollBarX = modalLeft + MODAL_WIDTH - 8;
+			if (event.x() >= scrollBarX - 4 && event.x() <= scrollBarX + 8 && event.y() >= contentTop && event.y() <= contentBottom) {
+				isDraggingScrollBar = true;
+				updateScrollFromMouse(event.y());
+				return true;
+			}
+		}
+		return super.mouseClicked(event, doubleClick);
+	}
+
+	@Override
+	public boolean mouseReleased(MouseButtonEvent event) {
+		if (event.button() == 0) {
+			isDraggingScrollBar = false;
+		}
+		return super.mouseReleased(event);
+	}
+
+	@Override
+	public boolean mouseDragged(MouseButtonEvent event, double deltaX, double deltaY) {
+		if (isDraggingScrollBar && maxScroll > 0) {
+			updateScrollFromMouse(event.y());
+			return true;
+		}
+		return super.mouseDragged(event, deltaX, deltaY);
+	}
+
+	private void updateScrollFromMouse(double mouseY) {
+		int visibleHeight = contentBottom - contentTop;
+		double ratio = (mouseY - contentTop) / (double) visibleHeight;
+		scrollAmount = Mth.clamp(ratio * maxScroll, 0.0, maxScroll);
+		updateScrollPositions();
 	}
 
 	private void triggerTestAlert() {
@@ -209,9 +331,6 @@ final class PingSpikeConfigScreen extends Screen {
 
 	@Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-		int modalLeft = (width - MODAL_WIDTH) / 2;
-		int modalTop = Math.max(8, (height - MODAL_HEIGHT) / 2);
-
 		// Layer 1: 50% opacity translucent dark slate/obsidian backdrop
 		graphics.fill(modalLeft, modalTop, modalLeft + MODAL_WIDTH, modalTop + MODAL_HEIGHT, MODAL_BG_COLOR);
 
@@ -225,10 +344,31 @@ final class PingSpikeConfigScreen extends Screen {
 		graphics.renderOutline(modalLeft + 4, modalTop + 4, MODAL_WIDTH - 8, headerHeight, 0x80232734);
 		graphics.drawCenteredString(font, title, modalLeft + MODAL_WIDTH / 2, modalTop + 12, currentTheme.accent());
 
-		// Layer 4: Widgets
-		super.render(graphics, mouseX, mouseY, partialTick);
+		// Layer 4: Render scrollable controls inside scissor box
+		graphics.enableScissor(modalLeft + 2, contentTop - 2, modalLeft + MODAL_WIDTH - 2, contentBottom + 2);
+		for (AbstractWidget widget : scrollableWidgets) {
+			widget.render(graphics, mouseX, mouseY, partialTick);
+		}
+		graphics.disableScissor();
 
-		// Layer 5: Live In-Screen Alert Preview (when test button is clicked)
+		// Layer 5: Sleek scrollbar
+		if (maxScroll > 0) {
+			int scrollBarX = modalLeft + MODAL_WIDTH - 7;
+			int visibleHeight = contentBottom - contentTop;
+			int trackHeight = visibleHeight;
+			int thumbHeight = Math.max(16, (int) ((double) visibleHeight / (visibleHeight + maxScroll) * trackHeight));
+			int thumbY = contentTop + (int) ((scrollAmount / maxScroll) * (trackHeight - thumbHeight));
+
+			graphics.fill(scrollBarX, contentTop, scrollBarX + 3, contentBottom, 0x600C0E14);
+			graphics.fill(scrollBarX, thumbY, scrollBarX + 3, thumbY + thumbHeight, currentTheme.accent());
+		}
+
+		// Layer 6: Render pinned controls (Done and Test buttons) outside the scissor box!
+		for (AbstractWidget widget : pinnedWidgets) {
+			widget.render(graphics, mouseX, mouseY, partialTick);
+		}
+
+		// Layer 7: Live In-Screen Alert Preview (when test button is clicked)
 		long now = System.currentTimeMillis();
 		if (testAlertActive && now < testAlertEndTime) {
 			renderInScreenAlertPreview(graphics);
@@ -288,6 +428,10 @@ final class PingSpikeConfigScreen extends Screen {
 
 	private Component hudPositionOption() {
 		return Component.translatable("option.pingspikeindicator.hud_position", workingConfig.hudPosition().label());
+	}
+
+	private Component tabListPingOption() {
+		return Component.translatable("option.pingspikeindicator.tab_list_ping", workingConfig.tabListPingMode().label());
 	}
 
 	private Component durationOption() {
@@ -465,11 +609,6 @@ final class PingSpikeConfigScreen extends Screen {
 			);
 		}
 
-		private static double normalizedThreshold(int thresholdMillis) {
-			return (double) (thresholdMillis - PingSpikeConfig.MINIMUM_THRESHOLD_MILLIS)
-					/ (PingSpikeConfig.MAXIMUM_THRESHOLD_MILLIS - PingSpikeConfig.MINIMUM_THRESHOLD_MILLIS);
-		}
-
 		@Override
 		protected void updateMessage() {
 			setMessage(Component.translatable(
@@ -480,16 +619,7 @@ final class PingSpikeConfigScreen extends Screen {
 
 		@Override
 		protected void applyValue() {
-			int span = PingSpikeConfig.MAXIMUM_THRESHOLD_MILLIS - PingSpikeConfig.MINIMUM_THRESHOLD_MILLIS;
-			int stepped = (int) Math.round((this.value * span) / PingSpikeConfig.THRESHOLD_STEP_MILLIS)
-					* PingSpikeConfig.THRESHOLD_STEP_MILLIS;
-			int threshold = Math.clamp(
-					PingSpikeConfig.MINIMUM_THRESHOLD_MILLIS + stepped,
-					PingSpikeConfig.MINIMUM_THRESHOLD_MILLIS,
-					PingSpikeConfig.MAXIMUM_THRESHOLD_MILLIS
-			);
-			workingConfig = workingConfig.withSpikeThresholdMillis(threshold);
-			updateMessage();
+			workingConfig = workingConfig.withSpikeThresholdMillis(thresholdFromNormalized(value));
 		}
 
 		@Override
@@ -500,27 +630,37 @@ final class PingSpikeConfigScreen extends Screen {
 			int h = getHeight();
 			boolean hovered = isHoveredOrFocused();
 
-			// 1. Dark 50% opacity slider groove
+			// 1. Layered translucent track body (50% opacity)
 			graphics.fill(x, y, x + w, y + h, SLIDER_TRACK_BG_COLOR);
-			graphics.renderOutline(x, y, w, h, hovered ? currentTheme.accent() : 0x80282D3B);
 
-			// 2. Blocky progress fill
-			int trackInnerW = w - 4;
-			int fillW = (int) Math.round(this.value * trackInnerW);
-			if (fillW > 0) {
-				int fillAlpha = 0x44000000 | (currentTheme.accent() & 0x00FFFFFF);
-				graphics.fill(x + 2, y + 2, x + 2 + fillW, y + h - 2, fillAlpha);
+			// 2. Track border
+			graphics.renderOutline(x, y, w, h, hovered ? currentTheme.accent() : 0x80232734);
+
+			// 3. Filled slider progress (accent colored with 33% alpha)
+			int thumbWidth = 8;
+			int fillWidth = (int) (value * (w - thumbWidth));
+			if (fillWidth > 0) {
+				int progressColor = 0x55000000 | (currentTheme.accent() & 0x00FFFFFF);
+				graphics.fill(x + 1, y + 1, x + fillWidth + thumbWidth / 2, y + h - 1, progressColor);
 			}
 
-			// 3. Blocky handle (sharp 8px block bar)
-			int handleW = 8;
-			int handleX = x + 2 + (int) Math.round(this.value * (trackInnerW - handleW));
-			graphics.fill(handleX, y + 2, handleX + handleW, y + h - 2, currentTheme.accent());
-			graphics.renderOutline(handleX, y + 2, handleW, h - 4, 0xFFFFFFFF);
+			// 4. Slider blocky thumb handle (crisp 8px rectangular handle)
+			int thumbX = x + fillWidth;
+			int thumbBorder = hovered ? 0xFFFFFFFF : currentTheme.accent();
+			graphics.fill(thumbX, y + 1, thumbX + thumbWidth, y + h - 1, 0xFFFFFFFF);
+			graphics.renderOutline(thumbX, y + 1, thumbWidth, h - 2, thumbBorder);
 
-			// 4. Centered text
+			// 5. Slider centered label
 			int textColor = hovered ? 0xFFFFFFFF : 0xFFE0E5EE;
 			graphics.drawCenteredString(font, getMessage(), x + w / 2, y + (h - font.lineHeight) / 2 + 1, textColor);
+		}
+
+		private static double normalizedThreshold(int thresholdMillis) {
+			return (thresholdMillis - 50.0) / (250.0 - 50.0);
+		}
+
+		private static int thresholdFromNormalized(double normalized) {
+			return (int) Math.round(50.0 + normalized * 200.0);
 		}
 	}
 }

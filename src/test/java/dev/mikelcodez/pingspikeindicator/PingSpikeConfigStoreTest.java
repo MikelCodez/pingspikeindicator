@@ -25,7 +25,7 @@ class PingSpikeConfigStoreTest {
 
 	@Test
 	void validConfigurationRoundTrips() throws IOException {
-		PingSpikeConfig expected = new PingSpikeConfig(false, 145, 5_000, false, true, AlertSprite.WIFI, HudPosition.TOP_RIGHT);
+		PingSpikeConfig expected = new PingSpikeConfig(false, 145, 5_000, false, true, AlertSprite.WIFI, HudPosition.TOP_RIGHT, TabListPingMode.NUMBERS_ONLY);
 		PingSpikeConfigStore store = store();
 
 		store.save(expected);
@@ -44,6 +44,7 @@ class PingSpikeConfigStoreTest {
 
 		assertEquals(AlertSprite.SIGNAL_BARS, result.config().alertSprite());
 		assertEquals(HudPosition.TOP_CENTER, result.config().hudPosition());
+		assertEquals(TabListPingMode.BOTH, result.config().tabListPingMode());
 		assertFalse(result.recoveredFromInvalidFile());
 	}
 

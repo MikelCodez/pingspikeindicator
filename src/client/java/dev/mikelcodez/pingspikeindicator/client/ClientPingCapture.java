@@ -3,7 +3,6 @@ package dev.mikelcodez.pingspikeindicator.client;
 import java.util.OptionalInt;
 
 import dev.mikelcodez.pingspikeindicator.CurrentPingDisplayState;
-import dev.mikelcodez.pingspikeindicator.PingSamplingController;
 import dev.mikelcodez.pingspikeindicator.PingSpikeAlertState;
 import dev.mikelcodez.pingspikeindicator.PingSpikeConfig;
 import dev.mikelcodez.pingspikeindicator.PingSpikeDetector;
@@ -14,22 +13,29 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.network.protocol.ping.ServerboundPingRequestPacket;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class ClientPingCapture {
+public final class ClientPingCapture {
 	private static final Logger LOGGER = LoggerFactory.getLogger("pingspikeindicator");
-	private static final long SAMPLE_INTERVAL_MILLIS = 1_000;
+	private static final long LIVE_PING_PROBE_INTERVAL_MILLIS = 500;
+
+	private static ClientPingCapture activeCapture;
 
 	private final ClientMonotonicClock clock;
 	private final PingSpikeAlertState alertState;
 	private final CurrentPingDisplayState currentPingState;
-	private final PingSamplingController controller;
+	private PingSpikeDetector detector;
 	private PingSpikeConfig config;
+	private boolean sessionActive;
 	private boolean sessionMarkerLogged;
+	private long lastProbeSentTimeMillis = 0;
+	private volatile int latestRealTimeLatencyMs = -1;
 
-	ClientPingCapture(
+	public ClientPingCapture(
 			ClientMonotonicClock clock,
 			PingSpikeAlertState alertState,
 			CurrentPingDisplayState currentPingState,
@@ -39,10 +45,16 @@ final class ClientPingCapture {
 		this.alertState = alertState;
 		this.currentPingState = currentPingState;
 		this.config = initialConfig;
-		this.controller = new PingSamplingController(
-				new PingSpikeDetector(initialConfig.detectorConfig()),
-				SAMPLE_INTERVAL_MILLIS
-		);
+		this.detector = new PingSpikeDetector(initialConfig.detectorConfig());
+		activeCapture = this;
+	}
+
+	public static ClientPingCapture getActive() {
+		return activeCapture;
+	}
+
+	public int latestRealTimeLatencyMs() {
+		return latestRealTimeLatencyMs;
 	}
 
 	void register() {
@@ -50,7 +62,7 @@ final class ClientPingCapture {
 		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> endSession());
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> endSession());
 		ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE.register((client, world) -> resetActiveSession());
-		LOGGER.info("Ping capture initialized with a {} ms sampling interval", SAMPLE_INTERVAL_MILLIS);
+		LOGGER.info("Ping capture initialized with live {} ms probe interval", LIVE_PING_PROBE_INTERVAL_MILLIS);
 	}
 
 	private void onEndClientTick(Minecraft client) {
@@ -59,47 +71,67 @@ final class ClientPingCapture {
 			return;
 		}
 
-		if (!controller.sessionActive()) {
-			controller.beginSession();
+		if (!sessionActive) {
+			sessionActive = true;
+			detector.reset();
 			sessionMarkerLogged = false;
 		}
 
-		if (client.screen != null || client.level == null || client.player == null) {
+		if (client.level == null || client.player == null) {
 			return;
 		}
 
-		long observedAtMillis = clock.millis();
-		if (!controller.isSampleDue(observedAtMillis)) {
-			return;
-		}
-
-		OptionalInt latency = currentLatency(client);
-		PingSamplingController.PollResult result = controller.poll(observedAtMillis, latency);
-		if (result.status() != PingSamplingController.PollStatus.SAMPLED) {
-			return;
-		}
-
-		PingSpikeDetector.Update update = result.detectorUpdate().orElseThrow();
-		int pingMillis = latency.orElseThrow();
-		if (config.currentPingVisible()) {
-			currentPingState.accept(pingMillis);
-		}
-		if (!sessionMarkerLogged) {
-			LOGGER.debug("Multiplayer ping capture active; first valid sample accepted");
-			sessionMarkerLogged = true;
-		}
-		if (update.signal() == PingSpikeDetector.Signal.SPIKE_STARTED && config.alertsEnabled()) {
-			alertState.onDetectorUpdate(observedAtMillis, pingMillis, update);
-			if (config.soundEnabled()) {
-				client.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_PLING, 1.25F));
+		// Actively send live ping request packet every 500ms
+		long now = Util.getMillis();
+		if (now - lastProbeSentTimeMillis >= LIVE_PING_PROBE_INTERVAL_MILLIS) {
+			ClientPacketListener connection = client.getConnection();
+			if (connection != null) {
+				connection.send(new ServerboundPingRequestPacket(now));
+				lastProbeSentTimeMillis = now;
 			}
-			LOGGER.debug("Ping spike start observed by Phase 1 detector");
+		}
+	}
+
+	/**
+	 * Called immediately when the server responds with ClientboundPongResponsePacket.
+	 * This executes directly in real-time, bypassing any slow tab latency polling!
+	 */
+	public void onRealTimePongReceived(int realTimeLatencyMs) {
+		if (realTimeLatencyMs < 0) {
+			return;
+		}
+
+		this.latestRealTimeLatencyMs = realTimeLatencyMs;
+
+		// 1. Immediately update Current Ping HUD element
+		if (config.currentPingVisible()) {
+			currentPingState.accept(realTimeLatencyMs);
+		}
+
+		// 2. Feed directly into detector on every pong response
+		if (sessionActive) {
+			long observedAtMillis = clock.millis();
+			PingSpikeDetector.Update update = detector.update(observedAtMillis, OptionalInt.of(realTimeLatencyMs));
+
+			if (!sessionMarkerLogged) {
+				LOGGER.debug("Multiplayer ping capture active; first valid live sample accepted: {} ms", realTimeLatencyMs);
+				sessionMarkerLogged = true;
+			}
+
+			if (update.signal() == PingSpikeDetector.Signal.SPIKE_STARTED && config.alertsEnabled()) {
+				alertState.onDetectorUpdate(observedAtMillis, realTimeLatencyMs, update);
+				Minecraft client = Minecraft.getInstance();
+				if (config.soundEnabled() && client != null) {
+					client.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.NOTE_BLOCK_PLING, 1.25F));
+				}
+				LOGGER.info("LIVE Ping spike alert triggered: ping={} ms, baseline={}", realTimeLatencyMs, update.baselineMillis());
+			}
 		}
 	}
 
 	void applyConfig(PingSpikeConfig replacement) {
 		if (replacement.spikeThresholdMillis() != config.spikeThresholdMillis()) {
-			controller.replaceDetector(new PingSpikeDetector(replacement.detectorConfig()));
+			detector = new PingSpikeDetector(replacement.detectorConfig());
 		}
 		if (replacement.alertDurationMillis() != config.alertDurationMillis()) {
 			alertState.setDisplayDurationMillis(replacement.alertDurationMillis());
@@ -121,24 +153,9 @@ final class ClientPingCapture {
 		return client.getConnection() != null && !client.isSingleplayer();
 	}
 
-	private static OptionalInt currentLatency(Minecraft client) {
-		ClientPacketListener connection = client.getConnection();
-		if (connection == null || client.player == null) {
-			return OptionalInt.empty();
-		}
-
-		PlayerInfo localPlayerInfo = connection.getPlayerInfo(client.player.getUUID());
-		if (localPlayerInfo == null) {
-			return OptionalInt.empty();
-		}
-
-		int latencyMillis = localPlayerInfo.getLatency();
-		return latencyMillis < 0 ? OptionalInt.empty() : OptionalInt.of(latencyMillis);
-	}
-
 	private void resetActiveSession() {
-		if (controller.sessionActive()) {
-			controller.beginSession();
+		if (sessionActive) {
+			detector.reset();
 		}
 		alertState.clear();
 		currentPingState.clear();
@@ -146,9 +163,8 @@ final class ClientPingCapture {
 	}
 
 	private void endSession() {
-		if (controller.sessionActive()) {
-			controller.endSession();
-		}
+		sessionActive = false;
+		detector.reset();
 		alertState.clear();
 		currentPingState.clear();
 		sessionMarkerLogged = false;

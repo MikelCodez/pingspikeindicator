@@ -23,6 +23,7 @@ public final class PingSpikeConfigStore {
 	private static final String KEY_CURRENT_PING_VISIBLE = "currentPingVisible";
 	private static final String KEY_ALERT_SPRITE = "alertSprite";
 	private static final String KEY_HUD_POSITION = "hudPosition";
+	private static final String KEY_TAB_LIST_PING_MODE = "tabListPingMode";
 
 	private final Path path;
 
@@ -45,6 +46,7 @@ public final class PingSpikeConfigStore {
 
 			AlertSprite sprite = AlertSprite.fromNameOrDefault(properties.getProperty(KEY_ALERT_SPRITE));
 			HudPosition position = HudPosition.fromNameOrDefault(properties.getProperty(KEY_HUD_POSITION));
+			TabListPingMode tabListMode = TabListPingMode.fromString(properties.getProperty(KEY_TAB_LIST_PING_MODE));
 
 			PingSpikeConfig config = new PingSpikeConfig(
 					parseBoolean(properties, KEY_ALERTS_ENABLED),
@@ -53,7 +55,8 @@ public final class PingSpikeConfigStore {
 					parseBoolean(properties, KEY_SOUND_ENABLED),
 					parseBoolean(properties, KEY_CURRENT_PING_VISIBLE),
 					sprite,
-					position
+					position,
+					tabListMode
 			);
 			return new LoadResult(config, false);
 		} catch (IOException | IllegalArgumentException exception) {
@@ -77,6 +80,7 @@ public final class PingSpikeConfigStore {
 		properties.setProperty(KEY_CURRENT_PING_VISIBLE, Boolean.toString(config.currentPingVisible()));
 		properties.setProperty(KEY_ALERT_SPRITE, config.alertSprite().name());
 		properties.setProperty(KEY_HUD_POSITION, config.hudPosition().name());
+		properties.setProperty(KEY_TAB_LIST_PING_MODE, config.tabListPingMode().name());
 
 		Path temporaryPath = path.resolveSibling(path.getFileName() + ".tmp");
 		try {
@@ -121,8 +125,5 @@ public final class PingSpikeConfigStore {
 	}
 
 	public record LoadResult(PingSpikeConfig config, boolean recoveredFromInvalidFile) {
-		public LoadResult {
-			Objects.requireNonNull(config, "config");
-		}
 	}
 }
