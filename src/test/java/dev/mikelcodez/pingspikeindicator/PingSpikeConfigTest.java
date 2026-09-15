@@ -20,6 +20,12 @@ class PingSpikeConfigTest {
 		assertEquals(AlertSprite.SIGNAL_BARS, defaults.alertSprite());
 		assertEquals(HudPosition.TOP_CENTER, defaults.hudPosition());
 		assertEquals(TabListPingMode.BOTH, defaults.tabListPingMode());
+		assertEquals(CurrentPingStyle.TRANSLUCENT, defaults.currentPingStyle());
+		assertEquals(AccentTheme.CYAN_BLUE, defaults.accentTheme());
+		assertEquals(0, defaults.alertOffsetX());
+		assertEquals(0, defaults.alertOffsetY());
+		assertEquals(0, defaults.currentPingOffsetX());
+		assertEquals(0, defaults.currentPingOffsetY());
 	}
 
 	@Test
@@ -50,6 +56,12 @@ class PingSpikeConfigTest {
 		assertEquals(AlertSprite.SATELLITE, defaults.withAlertSprite(AlertSprite.SATELLITE).alertSprite());
 		assertEquals(HudPosition.TOP_RIGHT, defaults.withHudPosition(HudPosition.TOP_RIGHT).hudPosition());
 		assertEquals(TabListPingMode.NUMBERS_ONLY, defaults.withTabListPingMode(TabListPingMode.NUMBERS_ONLY).tabListPingMode());
+		assertEquals(CurrentPingStyle.FANCY_ACCENT, defaults.withCurrentPingStyle(CurrentPingStyle.FANCY_ACCENT).currentPingStyle());
+		assertEquals(AccentTheme.CRIMSON_RED, defaults.withAccentTheme(AccentTheme.CRIMSON_RED).accentTheme());
+		assertEquals(10, defaults.withAlertOffset(10, 20).alertOffsetX());
+		assertEquals(20, defaults.withAlertOffset(10, 20).alertOffsetY());
+		assertEquals(30, defaults.withCurrentPingOffset(30, 40).currentPingOffsetX());
+		assertEquals(40, defaults.withCurrentPingOffset(30, 40).currentPingOffsetY());
 	}
 
 	@Test

@@ -5,7 +5,9 @@ import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
+import dev.mikelcodez.pingspikeindicator.AccentTheme;
 import dev.mikelcodez.pingspikeindicator.AlertSprite;
+import dev.mikelcodez.pingspikeindicator.CurrentPingStyle;
 import dev.mikelcodez.pingspikeindicator.HudPosition;
 import dev.mikelcodez.pingspikeindicator.PingSpikeConfig;
 import dev.mikelcodez.pingspikeindicator.TabListPingMode;
@@ -51,8 +53,6 @@ final class PingSpikeConfigScreen extends Screen {
 	private static final int PREVIEW_DETAIL_COLOR = 0xFFFFFFFF;
 	private static final int PREVIEW_SPRITE_SIZE = 20;
 
-	private static AccentTheme currentTheme = AccentTheme.CYAN_BLUE;
-
 	private final Screen parent;
 	private final Consumer<PingSpikeConfig> saveAction;
 	private PingSpikeConfig workingConfig;
@@ -93,7 +93,7 @@ final class PingSpikeConfigScreen extends Screen {
 
 		int y = contentTop;
 
-		// Row 0: Accent Theme Preview (Full Width)
+		// Row 0: Accent Theme Selector (Full Width)
 		addScrollable(new BlockyButton(
 				left,
 				y,
@@ -101,7 +101,7 @@ final class PingSpikeConfigScreen extends Screen {
 				CONTROL_HEIGHT,
 				accentOption(),
 				button -> {
-					currentTheme = currentTheme.next();
+					workingConfig = workingConfig.withAccentTheme(workingConfig.accentTheme().next());
 					button.setMessage(accentOption());
 				},
 				false,
@@ -200,7 +200,23 @@ final class PingSpikeConfigScreen extends Screen {
 		));
 		y += ROW_STEP;
 
-		// Row 6: Tab List Ping Mode (Separate Full Row)
+		// Row 6: Current Ping Style (Separate Full Row)
+		addScrollable(new BlockyButton(
+				left,
+				y,
+				CONTROL_WIDTH,
+				CONTROL_HEIGHT,
+				currentPingStyleOption(),
+				button -> {
+					workingConfig = workingConfig.withCurrentPingStyle(workingConfig.currentPingStyle().next());
+					button.setMessage(currentPingStyleOption());
+				},
+				false,
+				null
+		));
+		y += ROW_STEP;
+
+		// Row 7: Tab List Ping Mode (Separate Full Row)
 		addScrollable(new BlockyButton(
 				left,
 				y,
@@ -211,6 +227,19 @@ final class PingSpikeConfigScreen extends Screen {
 					workingConfig = workingConfig.withTabListPingMode(workingConfig.tabListPingMode().next());
 					button.setMessage(tabListPingOption());
 				},
+				false,
+				null
+		));
+		y += ROW_STEP;
+
+		// Row 8: Customize HUD Positions (Interactive drag editor button)
+		addScrollable(new BlockyButton(
+				left,
+				y,
+				CONTROL_WIDTH,
+				CONTROL_HEIGHT,
+				Component.translatable("option.pingspikeindicator.edit_hud_positions"),
+				button -> openHudPositioningScreen(),
 				false,
 				null
 		));
@@ -247,6 +276,18 @@ final class PingSpikeConfigScreen extends Screen {
 		);
 		pinnedWidgets.add(testBtn);
 		addRenderableWidget(testBtn);
+	}
+
+	private void openHudPositioningScreen() {
+		if (minecraft != null) {
+			minecraft.setScreen(new HudPositioningScreen(
+					this,
+					workingConfig,
+					updatedConfig -> {
+						this.workingConfig = updatedConfig;
+					}
+			));
+		}
 	}
 
 	private void addScrollable(AbstractWidget widget) {
@@ -335,14 +376,14 @@ final class PingSpikeConfigScreen extends Screen {
 		graphics.fill(modalLeft, modalTop, modalLeft + MODAL_WIDTH, modalTop + MODAL_HEIGHT, MODAL_BG_COLOR);
 
 		// Layer 2: Sharp, blocky 2-pixel accent border (no rounded corners)
-		graphics.renderOutline(modalLeft, modalTop, MODAL_WIDTH, MODAL_HEIGHT, currentTheme.accent());
-		graphics.renderOutline(modalLeft + 1, modalTop + 1, MODAL_WIDTH - 2, MODAL_HEIGHT - 2, currentTheme.borderDark());
+		graphics.renderOutline(modalLeft, modalTop, MODAL_WIDTH, MODAL_HEIGHT, workingConfig.accentTheme().accent());
+		graphics.renderOutline(modalLeft + 1, modalTop + 1, MODAL_WIDTH - 2, MODAL_HEIGHT - 2, workingConfig.accentTheme().borderDark());
 
 		// Layer 3: Inset blocky header bar (50% opacity)
 		int headerHeight = 24;
 		graphics.fill(modalLeft + 4, modalTop + 4, modalLeft + MODAL_WIDTH - 4, modalTop + 4 + headerHeight, HEADER_BG_COLOR);
 		graphics.renderOutline(modalLeft + 4, modalTop + 4, MODAL_WIDTH - 8, headerHeight, 0x80232734);
-		graphics.drawCenteredString(font, title, modalLeft + MODAL_WIDTH / 2, modalTop + 12, currentTheme.accent());
+		graphics.drawCenteredString(font, title, modalLeft + MODAL_WIDTH / 2, modalTop + 12, workingConfig.accentTheme().accent());
 
 		// Layer 4: Render scrollable controls inside scissor box
 		graphics.enableScissor(modalLeft + 2, contentTop - 2, modalLeft + MODAL_WIDTH - 2, contentBottom + 2);
@@ -360,7 +401,7 @@ final class PingSpikeConfigScreen extends Screen {
 			int thumbY = contentTop + (int) ((scrollAmount / maxScroll) * (trackHeight - thumbHeight));
 
 			graphics.fill(scrollBarX, contentTop, scrollBarX + 3, contentBottom, 0x600C0E14);
-			graphics.fill(scrollBarX, thumbY, scrollBarX + 3, thumbY + thumbHeight, currentTheme.accent());
+			graphics.fill(scrollBarX, thumbY, scrollBarX + 3, thumbY + thumbHeight, workingConfig.accentTheme().accent());
 		}
 
 		// Layer 6: Render pinned controls (Done and Test buttons) outside the scissor box!
@@ -392,7 +433,8 @@ final class PingSpikeConfigScreen extends Screen {
 			case TOP_RIGHT -> bannerX = width - bannerW - 10;
 			default -> bannerX = (width - bannerW) / 2;
 		}
-		int bannerY = 8;
+		bannerX += workingConfig.alertOffsetX();
+		int bannerY = 8 + workingConfig.alertOffsetY();
 
 		// Tactical alert frame
 		graphics.fill(bannerX, bannerY, bannerX + bannerW, bannerY + bannerH, PREVIEW_BG);
@@ -419,7 +461,7 @@ final class PingSpikeConfigScreen extends Screen {
 	}
 
 	private Component accentOption() {
-		return Component.translatable("option.pingspikeindicator.accent", currentTheme.label());
+		return Component.translatable("option.pingspikeindicator.accent", workingConfig.accentTheme().label());
 	}
 
 	private Component alertSpriteOption() {
@@ -434,47 +476,16 @@ final class PingSpikeConfigScreen extends Screen {
 		return Component.translatable("option.pingspikeindicator.tab_list_ping", workingConfig.tabListPingMode().label());
 	}
 
+	private Component currentPingStyleOption() {
+		return Component.translatable("option.pingspikeindicator.current_ping_style", workingConfig.currentPingStyle().label());
+	}
+
 	private Component durationOption() {
 		int seconds = workingConfig.alertDurationMillis() / 1_000;
 		return Component.translatable(
 				"option.pingspikeindicator.duration.short",
 				Component.translatable("value.pingspikeindicator.seconds.short", seconds)
 		);
-	}
-
-	enum AccentTheme {
-		CYAN_BLUE("Cyan Blue", 0xFF00D2FF, 0xFF005577),
-		EMERALD_GREEN("Emerald Green", 0xFF2ECC71, 0xFF145A32),
-		CRIMSON_RED("Crimson Red", 0xFFFF3344, 0xFF7B1113),
-		GOLD_YELLOW("Gold Yellow", 0xFFFFCC00, 0xFF7E6000),
-		PURE_WHITE("Pure White", 0xFFFFFFFF, 0xFF555555),
-		OBSIDIAN_BLACK("Obsidian Black", 0xFF2D3139, 0xFF12141A);
-
-		private final String label;
-		private final int accent;
-		private final int borderDark;
-
-		AccentTheme(String label, int accent, int borderDark) {
-			this.label = label;
-			this.accent = accent;
-			this.borderDark = borderDark;
-		}
-
-		public String label() {
-			return label;
-		}
-
-		public int accent() {
-			return accent;
-		}
-
-		public int borderDark() {
-			return borderDark;
-		}
-
-		public AccentTheme next() {
-			return values()[(ordinal() + 1) % values().length];
-		}
 	}
 
 	private final class BlockyButton extends AbstractButton {
@@ -523,9 +534,9 @@ final class PingSpikeConfigScreen extends Screen {
 			// 2. Crisp 1-pixel blocky border
 			int borderColor;
 			if (isDone) {
-				borderColor = hovered ? 0xFFFFFFFF : currentTheme.accent();
+				borderColor = hovered ? 0xFFFFFFFF : workingConfig.accentTheme().accent();
 			} else if (hovered) {
-				borderColor = currentTheme.accent();
+				borderColor = workingConfig.accentTheme().accent();
 			} else {
 				borderColor = 0x80282D3B;
 			}
@@ -547,13 +558,13 @@ final class PingSpikeConfigScreen extends Screen {
 
 				if (active) {
 					// Glowing high-opacity ON state: glowing accent track with white pip on right
-					int trackBg = 0x55000000 | (currentTheme.accent() & 0x00FFFFFF);
+					int trackBg = 0x55000000 | (workingConfig.accentTheme().accent() & 0x00FFFFFF);
 					graphics.fill(switchX, switchY, switchX + switchW, switchY + switchH, trackBg);
-					graphics.renderOutline(switchX, switchY, switchW, switchH, currentTheme.accent());
+					graphics.renderOutline(switchX, switchY, switchW, switchH, workingConfig.accentTheme().accent());
 
 					int pipX = switchX + switchW - pipW - 2;
 					graphics.fill(pipX, pipY, pipX + pipW, pipY + pipH, 0xFFFFFFFF);
-					graphics.renderOutline(pipX, pipY, pipW, pipH, currentTheme.accent());
+					graphics.renderOutline(pipX, pipY, pipW, pipH, workingConfig.accentTheme().accent());
 
 					// Glowing ON label
 					String text = "ON";
@@ -583,9 +594,9 @@ final class PingSpikeConfigScreen extends Screen {
 				// Centered text for cyclers / actions
 				int textColor;
 				if (isDone) {
-					textColor = hovered ? 0xFFFFFFFF : currentTheme.accent();
+					textColor = hovered ? 0xFFFFFFFF : workingConfig.accentTheme().accent();
 				} else if (hovered) {
-					textColor = currentTheme.accent();
+					textColor = workingConfig.accentTheme().accent();
 				} else {
 					textColor = 0xFFE0E5EE;
 				}
@@ -634,19 +645,19 @@ final class PingSpikeConfigScreen extends Screen {
 			graphics.fill(x, y, x + w, y + h, SLIDER_TRACK_BG_COLOR);
 
 			// 2. Track border
-			graphics.renderOutline(x, y, w, h, hovered ? currentTheme.accent() : 0x80232734);
+			graphics.renderOutline(x, y, w, h, hovered ? workingConfig.accentTheme().accent() : 0x80232734);
 
 			// 3. Filled slider progress (accent colored with 33% alpha)
 			int thumbWidth = 8;
 			int fillWidth = (int) (value * (w - thumbWidth));
 			if (fillWidth > 0) {
-				int progressColor = 0x55000000 | (currentTheme.accent() & 0x00FFFFFF);
+				int progressColor = 0x55000000 | (workingConfig.accentTheme().accent() & 0x00FFFFFF);
 				graphics.fill(x + 1, y + 1, x + fillWidth + thumbWidth / 2, y + h - 1, progressColor);
 			}
 
 			// 4. Slider blocky thumb handle (crisp 8px rectangular handle)
 			int thumbX = x + fillWidth;
-			int thumbBorder = hovered ? 0xFFFFFFFF : currentTheme.accent();
+			int thumbBorder = hovered ? 0xFFFFFFFF : workingConfig.accentTheme().accent();
 			graphics.fill(thumbX, y + 1, thumbX + thumbWidth, y + h - 1, 0xFFFFFFFF);
 			graphics.renderOutline(thumbX, y + 1, thumbWidth, h - 2, thumbBorder);
 

@@ -1,6 +1,7 @@
 {
   "key.pingspikeindicator.open_config": "Open Ping Spike Indicator Settings",
   "screen.pingspikeindicator.title": "Ping Spike Indicator Settings",
+  "screen.pingspikeindicator.hud_positioning": "HUD Layout Editor",
   "option.pingspikeindicator.alerts": "Alerts: %s",
   "option.pingspikeindicator.threshold": "Spike Threshold: %s ms",
   "option.pingspikeindicator.duration": "Alert Duration: %s",
@@ -13,9 +14,12 @@
   "value.pingspikeindicator.seconds.short": "%ss",
   "option.pingspikeindicator.alerts.label": "Visual Alerts",
   "option.pingspikeindicator.current_ping.label": "Current Ping HUD",
-  "option.pingspikeindicator.accent": "Accent Preview: %s",
+  "option.pingspikeindicator.accent": "Accent Theme: %s",
   "option.pingspikeindicator.alert_sprite": "Icon: %s",
   "option.pingspikeindicator.hud_position": "Anchor: %s",
   "option.pingspikeindicator.tab_list_ping": "Tab Ping: %s",
+  "option.pingspikeindicator.current_ping_style": "HUD Style: %s",
+  "option.pingspikeindicator.edit_hud_positions": "Customize HUD Positions",
+  "option.pingspikeindicator.reset_positions": "Reset Positions",
   "option.pingspikeindicator.test_alert": "Test"
 }

@@ -24,6 +24,12 @@ public final class PingSpikeConfigStore {
 	private static final String KEY_ALERT_SPRITE = "alertSprite";
 	private static final String KEY_HUD_POSITION = "hudPosition";
 	private static final String KEY_TAB_LIST_PING_MODE = "tabListPingMode";
+	private static final String KEY_CURRENT_PING_STYLE = "currentPingStyle";
+	private static final String KEY_ACCENT_THEME = "accentTheme";
+	private static final String KEY_ALERT_OFFSET_X = "alertOffsetX";
+	private static final String KEY_ALERT_OFFSET_Y = "alertOffsetY";
+	private static final String KEY_CURRENT_PING_OFFSET_X = "currentPingOffsetX";
+	private static final String KEY_CURRENT_PING_OFFSET_Y = "currentPingOffsetY";
 
 	private final Path path;
 
@@ -47,6 +53,13 @@ public final class PingSpikeConfigStore {
 			AlertSprite sprite = AlertSprite.fromNameOrDefault(properties.getProperty(KEY_ALERT_SPRITE));
 			HudPosition position = HudPosition.fromNameOrDefault(properties.getProperty(KEY_HUD_POSITION));
 			TabListPingMode tabListMode = TabListPingMode.fromString(properties.getProperty(KEY_TAB_LIST_PING_MODE));
+			CurrentPingStyle currentPingStyle = CurrentPingStyle.fromStringOrDefault(properties.getProperty(KEY_CURRENT_PING_STYLE));
+			AccentTheme accentTheme = AccentTheme.fromStringOrDefault(properties.getProperty(KEY_ACCENT_THEME));
+
+			int alertOffsetX = parseIntegerOrDefault(properties, KEY_ALERT_OFFSET_X, 0);
+			int alertOffsetY = parseIntegerOrDefault(properties, KEY_ALERT_OFFSET_Y, 0);
+			int currentPingOffsetX = parseIntegerOrDefault(properties, KEY_CURRENT_PING_OFFSET_X, 0);
+			int currentPingOffsetY = parseIntegerOrDefault(properties, KEY_CURRENT_PING_OFFSET_Y, 0);
 
 			PingSpikeConfig config = new PingSpikeConfig(
 					parseBoolean(properties, KEY_ALERTS_ENABLED),
@@ -56,7 +69,13 @@ public final class PingSpikeConfigStore {
 					parseBoolean(properties, KEY_CURRENT_PING_VISIBLE),
 					sprite,
 					position,
-					tabListMode
+					tabListMode,
+					currentPingStyle,
+					accentTheme,
+					alertOffsetX,
+					alertOffsetY,
+					currentPingOffsetX,
+					currentPingOffsetY
 			);
 			return new LoadResult(config, false);
 		} catch (IOException | IllegalArgumentException exception) {
@@ -81,6 +100,12 @@ public final class PingSpikeConfigStore {
 		properties.setProperty(KEY_ALERT_SPRITE, config.alertSprite().name());
 		properties.setProperty(KEY_HUD_POSITION, config.hudPosition().name());
 		properties.setProperty(KEY_TAB_LIST_PING_MODE, config.tabListPingMode().name());
+		properties.setProperty(KEY_CURRENT_PING_STYLE, config.currentPingStyle().name());
+		properties.setProperty(KEY_ACCENT_THEME, config.accentTheme().name());
+		properties.setProperty(KEY_ALERT_OFFSET_X, Integer.toString(config.alertOffsetX()));
+		properties.setProperty(KEY_ALERT_OFFSET_Y, Integer.toString(config.alertOffsetY()));
+		properties.setProperty(KEY_CURRENT_PING_OFFSET_X, Integer.toString(config.currentPingOffsetX()));
+		properties.setProperty(KEY_CURRENT_PING_OFFSET_Y, Integer.toString(config.currentPingOffsetY()));
 
 		Path temporaryPath = path.resolveSibling(path.getFileName() + ".tmp");
 		try {
@@ -106,6 +131,18 @@ public final class PingSpikeConfigStore {
 	private static int parseInteger(Properties properties, String key) {
 		String value = requiredValue(properties, key);
 		return Integer.parseInt(value);
+	}
+
+	private static int parseIntegerOrDefault(Properties properties, String key, int defaultValue) {
+		String value = properties.getProperty(key);
+		if (value == null) {
+			return defaultValue;
+		}
+		try {
+			return Integer.parseInt(value.trim());
+		} catch (NumberFormatException e) {
+			return defaultValue;
+		}
 	}
 
 	private static boolean parseBoolean(Properties properties, String key) {

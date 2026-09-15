@@ -13,7 +13,13 @@ public record PingSpikeConfig(
 		boolean currentPingVisible,
 		AlertSprite alertSprite,
 		HudPosition hudPosition,
-		TabListPingMode tabListPingMode
+		TabListPingMode tabListPingMode,
+		CurrentPingStyle currentPingStyle,
+		AccentTheme accentTheme,
+		int alertOffsetX,
+		int alertOffsetY,
+		int currentPingOffsetX,
+		int currentPingOffsetY
 ) {
 	public static final int FORMAT_VERSION = 1;
 	public static final int MINIMUM_THRESHOLD_MILLIS = 25;
@@ -27,6 +33,8 @@ public record PingSpikeConfig(
 		Objects.requireNonNull(alertSprite, "alertSprite");
 		Objects.requireNonNull(hudPosition, "hudPosition");
 		Objects.requireNonNull(tabListPingMode, "tabListPingMode");
+		Objects.requireNonNull(currentPingStyle, "currentPingStyle");
+		Objects.requireNonNull(accentTheme, "accentTheme");
 		if (spikeThresholdMillis < MINIMUM_THRESHOLD_MILLIS
 				|| spikeThresholdMillis > MAXIMUM_THRESHOLD_MILLIS) {
 			throw new IllegalArgumentException("spikeThresholdMillis is outside the supported range");
@@ -34,6 +42,34 @@ public record PingSpikeConfig(
 		if (!isAllowedAlertDuration(alertDurationMillis)) {
 			throw new IllegalArgumentException("alertDurationMillis is not a supported preset");
 		}
+	}
+
+	public PingSpikeConfig(
+			boolean alertsEnabled,
+			int spikeThresholdMillis,
+			int alertDurationMillis,
+			boolean soundEnabled,
+			boolean currentPingVisible,
+			AlertSprite alertSprite,
+			HudPosition hudPosition,
+			TabListPingMode tabListPingMode
+	) {
+		this(
+				alertsEnabled,
+				spikeThresholdMillis,
+				alertDurationMillis,
+				soundEnabled,
+				currentPingVisible,
+				alertSprite,
+				hudPosition,
+				tabListPingMode,
+				CurrentPingStyle.TRANSLUCENT,
+				AccentTheme.CYAN_BLUE,
+				0,
+				0,
+				0,
+				0
+		);
 	}
 
 	public PingSpikeConfig(
@@ -51,28 +87,13 @@ public record PingSpikeConfig(
 				currentPingVisible,
 				AlertSprite.SIGNAL_BARS,
 				HudPosition.TOP_CENTER,
-				TabListPingMode.BOTH
-		);
-	}
-
-	public PingSpikeConfig(
-			boolean alertsEnabled,
-			int spikeThresholdMillis,
-			int alertDurationMillis,
-			boolean soundEnabled,
-			boolean currentPingVisible,
-			AlertSprite alertSprite,
-			HudPosition hudPosition
-	) {
-		this(
-				alertsEnabled,
-				spikeThresholdMillis,
-				alertDurationMillis,
-				soundEnabled,
-				currentPingVisible,
-				alertSprite,
-				hudPosition,
-				TabListPingMode.BOTH
+				TabListPingMode.BOTH,
+				CurrentPingStyle.TRANSLUCENT,
+				AccentTheme.CYAN_BLUE,
+				0,
+				0,
+				0,
+				0
 		);
 	}
 
@@ -85,40 +106,242 @@ public record PingSpikeConfig(
 				false,
 				AlertSprite.SIGNAL_BARS,
 				HudPosition.TOP_CENTER,
-				TabListPingMode.BOTH
+				TabListPingMode.BOTH,
+				CurrentPingStyle.TRANSLUCENT,
+				AccentTheme.CYAN_BLUE,
+				0,
+				0,
+				0,
+				0
 		);
 	}
 
-	public PingSpikeConfig withAlertsEnabled(boolean enabled) {
-		return new PingSpikeConfig(enabled, spikeThresholdMillis, alertDurationMillis, soundEnabled, currentPingVisible, alertSprite, hudPosition, tabListPingMode);
+	public PingSpikeConfig withAlertsEnabled(boolean alertsEnabled) {
+		return new PingSpikeConfig(
+				alertsEnabled,
+				spikeThresholdMillis,
+				alertDurationMillis,
+				soundEnabled,
+				currentPingVisible,
+				alertSprite,
+				hudPosition,
+				tabListPingMode,
+				currentPingStyle,
+				accentTheme,
+				alertOffsetX,
+				alertOffsetY,
+				currentPingOffsetX,
+				currentPingOffsetY
+		);
 	}
 
-	public PingSpikeConfig withSpikeThresholdMillis(int thresholdMillis) {
-		return new PingSpikeConfig(alertsEnabled, thresholdMillis, alertDurationMillis, soundEnabled, currentPingVisible, alertSprite, hudPosition, tabListPingMode);
+	public PingSpikeConfig withSpikeThresholdMillis(int spikeThresholdMillis) {
+		return new PingSpikeConfig(
+				alertsEnabled,
+				spikeThresholdMillis,
+				alertDurationMillis,
+				soundEnabled,
+				currentPingVisible,
+				alertSprite,
+				hudPosition,
+				tabListPingMode,
+				currentPingStyle,
+				accentTheme,
+				alertOffsetX,
+				alertOffsetY,
+				currentPingOffsetX,
+				currentPingOffsetY
+		);
 	}
 
-	public PingSpikeConfig withAlertDurationMillis(int durationMillis) {
-		return new PingSpikeConfig(alertsEnabled, spikeThresholdMillis, durationMillis, soundEnabled, currentPingVisible, alertSprite, hudPosition, tabListPingMode);
+	public PingSpikeConfig withAlertDurationMillis(int alertDurationMillis) {
+		return new PingSpikeConfig(
+				alertsEnabled,
+				spikeThresholdMillis,
+				alertDurationMillis,
+				soundEnabled,
+				currentPingVisible,
+				alertSprite,
+				hudPosition,
+				tabListPingMode,
+				currentPingStyle,
+				accentTheme,
+				alertOffsetX,
+				alertOffsetY,
+				currentPingOffsetX,
+				currentPingOffsetY
+		);
 	}
 
-	public PingSpikeConfig withSoundEnabled(boolean enabled) {
-		return new PingSpikeConfig(alertsEnabled, spikeThresholdMillis, alertDurationMillis, enabled, currentPingVisible, alertSprite, hudPosition, tabListPingMode);
+	public PingSpikeConfig withSoundEnabled(boolean soundEnabled) {
+		return new PingSpikeConfig(
+				alertsEnabled,
+				spikeThresholdMillis,
+				alertDurationMillis,
+				soundEnabled,
+				currentPingVisible,
+				alertSprite,
+				hudPosition,
+				tabListPingMode,
+				currentPingStyle,
+				accentTheme,
+				alertOffsetX,
+				alertOffsetY,
+				currentPingOffsetX,
+				currentPingOffsetY
+		);
 	}
 
-	public PingSpikeConfig withCurrentPingVisible(boolean visible) {
-		return new PingSpikeConfig(alertsEnabled, spikeThresholdMillis, alertDurationMillis, soundEnabled, visible, alertSprite, hudPosition, tabListPingMode);
+	public PingSpikeConfig withCurrentPingVisible(boolean currentPingVisible) {
+		return new PingSpikeConfig(
+				alertsEnabled,
+				spikeThresholdMillis,
+				alertDurationMillis,
+				soundEnabled,
+				currentPingVisible,
+				alertSprite,
+				hudPosition,
+				tabListPingMode,
+				currentPingStyle,
+				accentTheme,
+				alertOffsetX,
+				alertOffsetY,
+				currentPingOffsetX,
+				currentPingOffsetY
+		);
 	}
 
-	public PingSpikeConfig withAlertSprite(AlertSprite sprite) {
-		return new PingSpikeConfig(alertsEnabled, spikeThresholdMillis, alertDurationMillis, soundEnabled, currentPingVisible, sprite, hudPosition, tabListPingMode);
+	public PingSpikeConfig withAlertSprite(AlertSprite alertSprite) {
+		return new PingSpikeConfig(
+				alertsEnabled,
+				spikeThresholdMillis,
+				alertDurationMillis,
+				soundEnabled,
+				currentPingVisible,
+				alertSprite,
+				hudPosition,
+				tabListPingMode,
+				currentPingStyle,
+				accentTheme,
+				alertOffsetX,
+				alertOffsetY,
+				currentPingOffsetX,
+				currentPingOffsetY
+		);
 	}
 
-	public PingSpikeConfig withHudPosition(HudPosition position) {
-		return new PingSpikeConfig(alertsEnabled, spikeThresholdMillis, alertDurationMillis, soundEnabled, currentPingVisible, alertSprite, position, tabListPingMode);
+	public PingSpikeConfig withHudPosition(HudPosition hudPosition) {
+		return new PingSpikeConfig(
+				alertsEnabled,
+				spikeThresholdMillis,
+				alertDurationMillis,
+				soundEnabled,
+				currentPingVisible,
+				alertSprite,
+				hudPosition,
+				tabListPingMode,
+				currentPingStyle,
+				accentTheme,
+				alertOffsetX,
+				alertOffsetY,
+				currentPingOffsetX,
+				currentPingOffsetY
+		);
 	}
 
-	public PingSpikeConfig withTabListPingMode(TabListPingMode mode) {
-		return new PingSpikeConfig(alertsEnabled, spikeThresholdMillis, alertDurationMillis, soundEnabled, currentPingVisible, alertSprite, hudPosition, mode);
+	public PingSpikeConfig withTabListPingMode(TabListPingMode tabListPingMode) {
+		return new PingSpikeConfig(
+				alertsEnabled,
+				spikeThresholdMillis,
+				alertDurationMillis,
+				soundEnabled,
+				currentPingVisible,
+				alertSprite,
+				hudPosition,
+				tabListPingMode,
+				currentPingStyle,
+				accentTheme,
+				alertOffsetX,
+				alertOffsetY,
+				currentPingOffsetX,
+				currentPingOffsetY
+		);
+	}
+
+	public PingSpikeConfig withCurrentPingStyle(CurrentPingStyle currentPingStyle) {
+		return new PingSpikeConfig(
+				alertsEnabled,
+				spikeThresholdMillis,
+				alertDurationMillis,
+				soundEnabled,
+				currentPingVisible,
+				alertSprite,
+				hudPosition,
+				tabListPingMode,
+				currentPingStyle,
+				accentTheme,
+				alertOffsetX,
+				alertOffsetY,
+				currentPingOffsetX,
+				currentPingOffsetY
+		);
+	}
+
+	public PingSpikeConfig withAccentTheme(AccentTheme accentTheme) {
+		return new PingSpikeConfig(
+				alertsEnabled,
+				spikeThresholdMillis,
+				alertDurationMillis,
+				soundEnabled,
+				currentPingVisible,
+				alertSprite,
+				hudPosition,
+				tabListPingMode,
+				currentPingStyle,
+				accentTheme,
+				alertOffsetX,
+				alertOffsetY,
+				currentPingOffsetX,
+				currentPingOffsetY
+		);
+	}
+
+	public PingSpikeConfig withAlertOffset(int alertOffsetX, int alertOffsetY) {
+		return new PingSpikeConfig(
+				alertsEnabled,
+				spikeThresholdMillis,
+				alertDurationMillis,
+				soundEnabled,
+				currentPingVisible,
+				alertSprite,
+				hudPosition,
+				tabListPingMode,
+				currentPingStyle,
+				accentTheme,
+				alertOffsetX,
+				alertOffsetY,
+				currentPingOffsetX,
+				currentPingOffsetY
+		);
+	}
+
+	public PingSpikeConfig withCurrentPingOffset(int currentPingOffsetX, int currentPingOffsetY) {
+		return new PingSpikeConfig(
+				alertsEnabled,
+				spikeThresholdMillis,
+				alertDurationMillis,
+				soundEnabled,
+				currentPingVisible,
+				alertSprite,
+				hudPosition,
+				tabListPingMode,
+				currentPingStyle,
+				accentTheme,
+				alertOffsetX,
+				alertOffsetY,
+				currentPingOffsetX,
+				currentPingOffsetY
+		);
 	}
 
 	public PingSpikeDetector.Config detectorConfig() {
@@ -126,9 +349,9 @@ public record PingSpikeConfig(
 		return new PingSpikeDetector.Config(20, 5, spikeThresholdMillis, recoveryHysteresisMillis, 1_000, 5_000);
 	}
 
-	public static boolean isAllowedAlertDuration(int durationMillis) {
+	public static boolean isAllowedAlertDuration(int alertDurationMillis) {
 		for (int preset : ALERT_DURATION_PRESETS_MILLIS) {
-			if (durationMillis == preset) {
+			if (preset == alertDurationMillis) {
 				return true;
 			}
 		}
