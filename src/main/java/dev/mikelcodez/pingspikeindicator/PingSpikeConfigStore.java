@@ -21,6 +21,8 @@ public final class PingSpikeConfigStore {
 	private static final String KEY_ALERT_DURATION = "alertDurationMillis";
 	private static final String KEY_SOUND_ENABLED = "soundEnabled";
 	private static final String KEY_CURRENT_PING_VISIBLE = "currentPingVisible";
+	private static final String KEY_ALERT_SPRITE = "alertSprite";
+	private static final String KEY_HUD_POSITION = "hudPosition";
 
 	private final Path path;
 
@@ -41,12 +43,17 @@ public final class PingSpikeConfigStore {
 				throw new IllegalArgumentException("unsupported config version");
 			}
 
+			AlertSprite sprite = AlertSprite.fromNameOrDefault(properties.getProperty(KEY_ALERT_SPRITE));
+			HudPosition position = HudPosition.fromNameOrDefault(properties.getProperty(KEY_HUD_POSITION));
+
 			PingSpikeConfig config = new PingSpikeConfig(
 					parseBoolean(properties, KEY_ALERTS_ENABLED),
 					parseInteger(properties, KEY_SPIKE_THRESHOLD),
 					parseInteger(properties, KEY_ALERT_DURATION),
 					parseBoolean(properties, KEY_SOUND_ENABLED),
-					parseBoolean(properties, KEY_CURRENT_PING_VISIBLE)
+					parseBoolean(properties, KEY_CURRENT_PING_VISIBLE),
+					sprite,
+					position
 			);
 			return new LoadResult(config, false);
 		} catch (IOException | IllegalArgumentException exception) {
@@ -68,6 +75,8 @@ public final class PingSpikeConfigStore {
 		properties.setProperty(KEY_ALERT_DURATION, Integer.toString(config.alertDurationMillis()));
 		properties.setProperty(KEY_SOUND_ENABLED, Boolean.toString(config.soundEnabled()));
 		properties.setProperty(KEY_CURRENT_PING_VISIBLE, Boolean.toString(config.currentPingVisible()));
+		properties.setProperty(KEY_ALERT_SPRITE, config.alertSprite().name());
+		properties.setProperty(KEY_HUD_POSITION, config.hudPosition().name());
 
 		Path temporaryPath = path.resolveSibling(path.getFileName() + ".tmp");
 		try {

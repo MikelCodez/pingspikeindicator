@@ -1,5 +1,7 @@
 package dev.mikelcodez.pingspikeindicator;
 
+import java.util.Objects;
+
 /**
  * Validated, client-persisted user options expressed without game-runtime types.
  */
@@ -8,7 +10,9 @@ public record PingSpikeConfig(
 		int spikeThresholdMillis,
 		int alertDurationMillis,
 		boolean soundEnabled,
-		boolean currentPingVisible
+		boolean currentPingVisible,
+		AlertSprite alertSprite,
+		HudPosition hudPosition
 ) {
 	public static final int FORMAT_VERSION = 1;
 	public static final int MINIMUM_THRESHOLD_MILLIS = 25;
@@ -19,6 +23,8 @@ public record PingSpikeConfig(
 	private static final int[] ALERT_DURATION_PRESETS_MILLIS = {2_000, 3_000, 5_000};
 
 	public PingSpikeConfig {
+		Objects.requireNonNull(alertSprite, "alertSprite");
+		Objects.requireNonNull(hudPosition, "hudPosition");
 		if (spikeThresholdMillis < MINIMUM_THRESHOLD_MILLIS
 				|| spikeThresholdMillis > MAXIMUM_THRESHOLD_MILLIS) {
 			throw new IllegalArgumentException("spikeThresholdMillis is outside the supported range");
@@ -28,28 +34,62 @@ public record PingSpikeConfig(
 		}
 	}
 
+	public PingSpikeConfig(
+			boolean alertsEnabled,
+			int spikeThresholdMillis,
+			int alertDurationMillis,
+			boolean soundEnabled,
+			boolean currentPingVisible
+	) {
+		this(
+				alertsEnabled,
+				spikeThresholdMillis,
+				alertDurationMillis,
+				soundEnabled,
+				currentPingVisible,
+				AlertSprite.SIGNAL_BARS,
+				HudPosition.TOP_CENTER
+		);
+	}
+
 	public static PingSpikeConfig defaults() {
-		return new PingSpikeConfig(true, DEFAULT_THRESHOLD_MILLIS, DEFAULT_ALERT_DURATION_MILLIS, true, false);
+		return new PingSpikeConfig(
+				true,
+				DEFAULT_THRESHOLD_MILLIS,
+				DEFAULT_ALERT_DURATION_MILLIS,
+				true,
+				false,
+				AlertSprite.SIGNAL_BARS,
+				HudPosition.TOP_CENTER
+		);
 	}
 
 	public PingSpikeConfig withAlertsEnabled(boolean enabled) {
-		return new PingSpikeConfig(enabled, spikeThresholdMillis, alertDurationMillis, soundEnabled, currentPingVisible);
+		return new PingSpikeConfig(enabled, spikeThresholdMillis, alertDurationMillis, soundEnabled, currentPingVisible, alertSprite, hudPosition);
 	}
 
 	public PingSpikeConfig withSpikeThresholdMillis(int thresholdMillis) {
-		return new PingSpikeConfig(alertsEnabled, thresholdMillis, alertDurationMillis, soundEnabled, currentPingVisible);
+		return new PingSpikeConfig(alertsEnabled, thresholdMillis, alertDurationMillis, soundEnabled, currentPingVisible, alertSprite, hudPosition);
 	}
 
 	public PingSpikeConfig withAlertDurationMillis(int durationMillis) {
-		return new PingSpikeConfig(alertsEnabled, spikeThresholdMillis, durationMillis, soundEnabled, currentPingVisible);
+		return new PingSpikeConfig(alertsEnabled, spikeThresholdMillis, durationMillis, soundEnabled, currentPingVisible, alertSprite, hudPosition);
 	}
 
 	public PingSpikeConfig withSoundEnabled(boolean enabled) {
-		return new PingSpikeConfig(alertsEnabled, spikeThresholdMillis, alertDurationMillis, enabled, currentPingVisible);
+		return new PingSpikeConfig(alertsEnabled, spikeThresholdMillis, alertDurationMillis, enabled, currentPingVisible, alertSprite, hudPosition);
 	}
 
 	public PingSpikeConfig withCurrentPingVisible(boolean visible) {
-		return new PingSpikeConfig(alertsEnabled, spikeThresholdMillis, alertDurationMillis, soundEnabled, visible);
+		return new PingSpikeConfig(alertsEnabled, spikeThresholdMillis, alertDurationMillis, soundEnabled, visible, alertSprite, hudPosition);
+	}
+
+	public PingSpikeConfig withAlertSprite(AlertSprite sprite) {
+		return new PingSpikeConfig(alertsEnabled, spikeThresholdMillis, alertDurationMillis, soundEnabled, currentPingVisible, sprite, hudPosition);
+	}
+
+	public PingSpikeConfig withHudPosition(HudPosition position) {
+		return new PingSpikeConfig(alertsEnabled, spikeThresholdMillis, alertDurationMillis, soundEnabled, currentPingVisible, alertSprite, position);
 	}
 
 	public PingSpikeDetector.Config detectorConfig() {

@@ -25,7 +25,7 @@ class PingSpikeConfigStoreTest {
 
 	@Test
 	void validConfigurationRoundTrips() throws IOException {
-		PingSpikeConfig expected = new PingSpikeConfig(false, 145, 5_000, false, true);
+		PingSpikeConfig expected = new PingSpikeConfig(false, 145, 5_000, false, true, AlertSprite.WIFI, HudPosition.TOP_RIGHT);
 		PingSpikeConfigStore store = store();
 
 		store.save(expected);
@@ -34,6 +34,17 @@ class PingSpikeConfigStoreTest {
 		assertEquals(expected, result.config());
 		assertFalse(result.recoveredFromInvalidFile());
 		assertFalse(Files.exists(configPath().resolveSibling("pingspikeindicator.properties.tmp")));
+	}
+
+	@Test
+	void olderConfigurationMissingNewKeysFallsBackSafelyToDefaults() throws IOException {
+		Files.writeString(configPath(), validText());
+
+		PingSpikeConfigStore.LoadResult result = store().load();
+
+		assertEquals(AlertSprite.SIGNAL_BARS, result.config().alertSprite());
+		assertEquals(HudPosition.TOP_CENTER, result.config().hudPosition());
+		assertFalse(result.recoveredFromInvalidFile());
 	}
 
 	@Test

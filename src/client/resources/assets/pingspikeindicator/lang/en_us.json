@@ -4,11 +4,17 @@
   "option.pingspikeindicator.alerts": "Alerts: %s",
   "option.pingspikeindicator.threshold": "Spike Threshold: %s ms",
   "option.pingspikeindicator.duration": "Alert Duration: %s",
+  "option.pingspikeindicator.duration.short": "Duration: %s",
   "option.pingspikeindicator.sound": "Alert Sound: %s",
+  "option.pingspikeindicator.sound.label": "Alert Sound",
+  "option.pingspikeindicator.sound.short": "Sound",
   "option.pingspikeindicator.current_ping": "Current Ping Display: %s",
   "value.pingspikeindicator.seconds": "%s seconds",
+  "value.pingspikeindicator.seconds.short": "%ss",
   "option.pingspikeindicator.alerts.label": "Visual Alerts",
-  "option.pingspikeindicator.sound.label": "Alert Sound",
   "option.pingspikeindicator.current_ping.label": "Current Ping HUD",
-  "option.pingspikeindicator.accent": "Accent Preview: %s"
+  "option.pingspikeindicator.accent": "Accent Preview: %s",
+  "option.pingspikeindicator.alert_sprite": "Icon: %s",
+  "option.pingspikeindicator.hud_position": "Anchor: %s",
+  "option.pingspikeindicator.test_alert": "Test"
 }

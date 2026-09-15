@@ -17,6 +17,8 @@ class PingSpikeConfigTest {
 		assertEquals(3_000, defaults.alertDurationMillis());
 		assertTrue(defaults.soundEnabled());
 		assertFalse(defaults.currentPingVisible());
+		assertEquals(AlertSprite.SIGNAL_BARS, defaults.alertSprite());
+		assertEquals(HudPosition.TOP_CENTER, defaults.hudPosition());
 	}
 
 	@Test
@@ -38,6 +40,14 @@ class PingSpikeConfigTest {
 		assertEquals(5_000, defaults.withAlertDurationMillis(5_000).alertDurationMillis());
 		assertThrows(IllegalArgumentException.class, () -> defaults.withAlertDurationMillis(1_999));
 		assertThrows(IllegalArgumentException.class, () -> defaults.withAlertDurationMillis(10_000));
+	}
+
+	@Test
+	void spriteAndPositionMutatorsWorkCorrectly() {
+		PingSpikeConfig defaults = PingSpikeConfig.defaults();
+
+		assertEquals(AlertSprite.SATELLITE, defaults.withAlertSprite(AlertSprite.SATELLITE).alertSprite());
+		assertEquals(HudPosition.TOP_RIGHT, defaults.withHudPosition(HudPosition.TOP_RIGHT).hudPosition());
 	}
 
 	@Test
