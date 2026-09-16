@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // Theme Switching Logic
   const themes = {
     ember: {
       accent: '#FF6B1A',
@@ -90,5 +91,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (triggerSpikeBtn) {
     triggerSpikeBtn.addEventListener('click', simulateSpike);
+  }
+
+  // Version Control & Minecraft Target Filter Tabs
+  const filterTabs = document.querySelectorAll('.filter-tab');
+  const downloadCards = document.querySelectorAll('.download-card');
+  const buildBoxes = document.querySelectorAll('.build-download-box');
+  const versionSelect = document.getElementById('versionSelect');
+  const releaseCards = document.querySelectorAll('.release-card');
+
+  filterTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      filterTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      const target = tab.dataset.filter;
+
+      // Filter download section cards
+      downloadCards.forEach(card => {
+        if (target === 'all' || card.dataset.mc === target) {
+          card.style.display = 'flex';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      // Filter changelog build download boxes
+      buildBoxes.forEach(box => {
+        if (target === 'all' || box.dataset.mcTarget === target) {
+          box.style.display = 'flex';
+        } else {
+          box.style.display = 'none';
+        }
+      });
+    });
+  });
+
+  // Version Dropdown Selector (e.g. v1.0.0, v1.0.1, all)
+  if (versionSelect) {
+    versionSelect.addEventListener('change', (e) => {
+      const selectedVersion = e.target.value;
+      releaseCards.forEach(card => {
+        if (selectedVersion === 'all' || card.dataset.release === selectedVersion) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    });
   }
 });

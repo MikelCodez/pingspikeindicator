@@ -1,0 +1,9 @@
+services:
+  pingspike-web:
+    image: nginx:alpine
+    container_name: pingspike-website
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8088:80"
+    volumes:
+      - ./public:/usr/share/nginx/html:ro
