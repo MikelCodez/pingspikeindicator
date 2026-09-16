@@ -10,8 +10,7 @@ public enum AccentTheme {
 	EMERALD_GREEN("Emerald Green", 0xFF2ECC71, 0xFF145A32),
 	CRIMSON_RED("Crimson Red", 0xFFFF3344, 0xFF7B1113),
 	GOLD_YELLOW("Gold Yellow", 0xFFFFCC00, 0xFF7E6000),
-	PURE_WHITE("Pure White", 0xFFFFFFFF, 0xFF555555),
-	OBSIDIAN_BLACK("Obsidian Black", 0xFF2D3139, 0xFF12141A);
+	PURE_WHITE("Pure White", 0xFFFFFFFF, 0xFF555555);
 
 	private final String label;
 	private final int accent;

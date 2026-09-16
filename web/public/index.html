@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ping Spike Indicator | Minecraft Fabric Mod</title>
+  <meta name="description" content="Never lose a clutch PvP fight or crystal clutch to ghost lag again. Real-time ping spike detection, HUD positioning, and custom tactical themes for Minecraft Fabric.">
+  
+  <!-- OpenGraph Meta Tags -->
+  <meta property="og:title" content="Ping Spike Indicator - Competitive Latency HUD for Minecraft">
+  <meta property="og:description" content="Immediate audio-visual alert the millisecond your connection spikes. Client-only, zero FPS hit, 100% server compliant.">
+  <meta property="og:image" content="/icon.png">
+  <meta property="og:url" content="https://pingspike.mikelcodez.xyz">
+  <meta name="theme-color" content="#FF6B1A">
+
+  <link rel="icon" type="image/png" href="/icon.png">
+  <link rel="stylesheet" href="/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Header / Navigation -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <img src="/icon.png" alt="Ping Spike Indicator Logo" class="brand-icon">
+        <div class="brand-text">
+          <span class="brand-name">PingSpike<span class="highlight">Indicator</span></span>
+          <span class="brand-badge">Fabric Mod</span>
+        </div>
+      </div>
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#downloads">Downloads</a>
+        <a href="#support" class="support-link">Support & Donate</a>
+        <a href="https://github.com/mikelcodez/pingspikeindicator" target="_blank" rel="noopener" class="btn btn-secondary btn-sm">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container hero-inner">
+      <div class="hero-badge">
+        <span class="pulse-dot"></span> Compatible with MC 1.20.1, 1.21.x, 1.21.11 &amp; 26.x
+      </div>
+      <h1 class="hero-title">
+        Never lose a clutch fight to <span class="gradient-text">ghost lag</span> again.
+      </h1>
+      <p class="hero-desc">
+        Vanilla Minecraft's 5 green bars lie to you. <strong>Ping Spike Indicator</strong> instantly detects sudden latency spikes in real-time, displays live millisecond counters in Tab, and gives you a customizable HUD so you know the exact second you hit a lag spike.
+      </p>
+
+      <div class="hero-actions">
+        <a href="#downloads" class="btn btn-primary btn-lg">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download Free Mod (.JAR)
+        </a>
+        <a href="#preview" class="btn btn-outline btn-lg">Interactive Preview</a>
+      </div>
+
+      <!-- Live Mock Banner Component -->
+      <div class="hero-preview" id="preview">
+        <div class="hud-mock-wrapper">
+          <div class="hud-mock-ping" id="mockPing">
+            <span class="ping-icon">📡</span> 28 ms
+          </div>
+          <div class="hud-mock-banner" id="mockBanner">
+            <div class="banner-badge">⚠️ PING SPIKE</div>
+            <div class="banner-text">+145 ms (173 ms)</div>
+          </div>
+        </div>
+        <div class="preview-controls">
+          <span class="control-label">Theme Switcher:</span>
+          <button class="theme-btn active" data-theme="ember" style="--accent: #FF6B1A;">Ember</button>
+          <button class="theme-btn" data-theme="tactical" style="--accent: #00D4FF;">Cyan</button>
+          <button class="theme-btn" data-theme="toxic" style="--accent: #39FF14;">Toxic Lime</button>
+          <button class="theme-btn" data-theme="void" style="--accent: #B026FF;">Void Purple</button>
+          <button class="theme-btn" data-theme="white" style="--accent: #FFFFFF;">Pure White</button>
+          <button class="btn btn-sm btn-ghost test-spike-btn" id="triggerSpike">Simulate Spike</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid -->
+  <section class="features-section" id="features">
+    <div class="container">
+      <div class="section-heading">
+        <span class="section-tag">COMPETITIVE ADVANTAGE</span>
+        <h2>Engineered for PvP, Crystal &amp; Clutch Gameplay</h2>
+        <p>Zero bloat, completely client-only, 100% compliant on Hypixel, 2b2t, and competitive servers.</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon" style="--accent-bg: rgba(255, 107, 26, 0.15); --accent: #FF6B1A;">⚡</div>
+          <h3>Instant Delta Spike Detection</h3>
+          <p>Unlike vanilla Minecraft which averages ping over long intervals, our sliding-window algorithm detects latency surges the moment packet timing degrades.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon" style="--accent-bg: rgba(0, 212, 255, 0.15); --accent: #00D4FF;">🎯</div>
+          <h3>Click &amp; Drag In-Game Positioning</h3>
+          <p>Press your hotkey to open a full graphical canvas. Click, drag, and position your Alert Banner and Current Ping anywhere on your screen with real-time snap coordinates.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon" style="--accent-bg: rgba(176, 38, 255, 0.15); --accent: #B026FF;">🎨</div>
+          <h3>5 Accent Themes &amp; 3 HUD Styles</h3>
+          <p>Pick between Ember Orange, Tactical Cyan, Toxic Lime, Void Purple, and Pure White. Switch Current Ping between Translucent Glass, Clean Text-Only, or High-Contrast Fancy Accent.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon" style="--accent-bg: rgba(57, 255, 20, 0.15); --accent: #39FF14;">📊</div>
+          <h3>Real Numerical Ping in Tab</h3>
+          <p>Replace useless 5-bar green icons with crisp, exact millisecond numbers directly on the player player tab overlay.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon" style="--accent-bg: rgba(255, 215, 0, 0.15); --accent: #FFD700;">🔔</div>
+          <h3>Subtle Audio &amp; Visual Alerts</h3>
+          <p>Configurable sound chimes, alert display duration slider, and custom alert icon sprites (Warning Triangle, Lightning, Radio Wave, Wifi Slash).</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon" style="--accent-bg: rgba(0, 255, 180, 0.15); --accent: #00FFB4;">🛡️</div>
+          <h3>Server Rule Safe &amp; Zero Lag</h3>
+          <p>Pure client-side rendering. Sends zero extra network packets and introduces 0.00% frame drop.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Downloads Section -->
+  <section class="downloads-section" id="downloads">
+    <div class="container">
+      <div class="section-heading">
+        <span class="section-tag">DOWNLOADS</span>
+        <h2>Choose Your Minecraft Version</h2>
+        <p>Direct standalone .JAR downloads with zero ads or wait timers. Always virus-scanned and open source.</p>
+      </div>
+
+      <div class="download-cards">
+        <!-- 1.21.11 -->
+        <div class="download-card featured">
+          <div class="card-badge">RECOMMENDED</div>
+          <h3>Minecraft 1.21.11</h3>
+          <div class="card-meta">
+            <span>Fabric Loader &ge; 0.16</span>
+            <span>Java 21</span>
+            <span>v1.0.0</span>
+          </div>
+          <p class="card-desc">Latest release build with full interactive GUI drag positioning, dynamic accent themes, and tab ping injection.</p>
+          <a href="/downloads/pingspikeindicator-1.0.0-1.21.11.jar" download class="btn btn-primary btn-block">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10 ice"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download 1.21.11 (.jar)
+          </a>
+        </div>
+
+        <!-- 1.21 - 1.21.10 -->
+        <div class="download-card">
+          <h3>Minecraft 1.21 – 1.21.10</h3>
+          <div class="card-meta">
+            <span>Fabric Loader &ge; 0.16</span>
+            <span>Java 21</span>
+            <span>v1.0.0</span>
+          </div>
+          <p class="card-desc">Backport compatible across all sub-releases from 1.21 through 1.21.10.</p>
+          <a href="/downloads/pingspikeindicator-1.0.0-1.21-1.21.10.jar" download class="btn btn-secondary btn-block">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download 1.21.x (.jar)
+          </a>
+        </div>
+
+        <!-- 1.20.1 -->
+        <div class="download-card">
+          <div class="card-badge pvp-badge">POPULAR FOR MODPACKS</div>
+          <h3>Minecraft 1.20.1</h3>
+          <div class="card-meta">
+            <span>Fabric Loader &ge; 0.15</span>
+            <span>Java 17</span>
+            <span>v1.0.0</span>
+          </div>
+          <p class="card-desc">Dedicated backport for 1.20.1 competitive PvP, SMPs, and major modern modpacks.</p>
+          <a href="/downloads/pingspikeindicator-1.0.0-1.20.1.jar" download class="btn btn-secondary btn-block">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download 1.20.1 (.jar)
+          </a>
+        </div>
+
+        <!-- 26.x -->
+        <div class="download-card">
+          <div class="card-badge beta-badge">NEXT-GEN</div>
+          <h3>Minecraft 26.x</h3>
+          <div class="card-meta">
+            <span>Fabric Loader &ge; 0.19</span>
+            <span>Java 25</span>
+            <span>v1.0.0</span>
+          </div>
+          <p class="card-desc">Next-generation target ready for Minecraft 26.0 through 26.3.</p>
+          <a href="/downloads/pingspikeindicator-1.0.0-26.x.jar" download class="btn btn-secondary btn-block">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download 26.x (.jar)
+          </a>
+        </div>
+      </div>
+
+      <!-- Third Party Platform Hub -->
+      <div class="platforms-bar">
+        <span>Also available on community platforms:</span>
+        <div class="platform-links">
+          <a href="https://modrinth.com/mod/pingspikeindicator" target="_blank" rel="noopener" class="platform-btn modrinth">
+            Modrinth
+          </a>
+          <a href="https://curseforge.com/minecraft/mc-mods/pingspikeindicator" target="_blank" rel="noopener" class="platform-btn curseforge">
+            CurseForge
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Support & Monetization Section -->
+  <section class="support-section" id="support">
+    <div class="container support-inner">
+      <div class="support-content">
+        <span class="section-tag">COMMUNITY SUPPORTED</span>
+        <h2>Support Continued Development</h2>
+        <p>Ping Spike Indicator is 100% free and open source. If this mod saved your PvP streak, gear, or SMP build, consider supporting us to help fund server hosting, new Minecraft version ports, and Forge / NeoForge releases!</p>
+        
+        <div class="support-perks">
+          <div class="perk-item">
+            <span class="perk-check">✔</span>
+            <span>Early access to pre-release betas &amp; loader ports (NeoForge, Forge)</span>
+          </div>
+          <div class="perk-item">
+            <span class="perk-check">✔</span>
+            <span>Discord Supporter Role &amp; direct input on new themes/features</span>
+          </div>
+          <div class="perk-item">
+            <span class="perk-check">✔</span>
+            <span>Your name credited in the mod's In-Game Configuration Screen</span>
+          </div>
+        </div>
+
+        <div class="support-buttons">
+          <a href="https://ko-fi.com/mikelcodez" target="_blank" rel="noopener" class="btn btn-kofi btn-lg">
+            ☕ Buy Me a Coffee on Ko-fi
+          </a>
+          <a href="https://patreon.com/mikelcodez" target="_blank" rel="noopener" class="btn btn-patreon btn-lg">
+            ⭐ Join Patreon
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div class="footer-left">
+        <div class="brand">
+          <img src="/icon.png" alt="Ping Spike Indicator Logo" class="brand-icon-sm">
+          <span>PingSpikeIndicator by <strong>mikelcodez</strong></span>
+        </div>
+        <p class="footer-legal">Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft.</p>
+      </div>
+      <div class="footer-right">
+        <a href="https://mikelcodez.xyz">mikelcodez.xyz</a>
+        <a href="https://github.com/mikelcodez/pingspikeindicator">Source Code</a>
+        <a href="#downloads">Direct Downloads</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/script.js"></script>
+</body>
+</html>
