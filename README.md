@@ -1,58 +1,73 @@
 # Ping Spike Indicator
 
-Ping Spike Indicator is a lightweight, client-only Fabric mod that warns you when multiplayer ping suddenly becomes meaningfully worse. Its Minecraft-style warning disappears automatically instead of occupying the screen as a permanent network dashboard.
+Ping Spike Indicator is a lightweight, client-only Fabric mod that gives you immediate, tactical visual and audio warnings the moment your multiplayer ping suddenly spikes. It also features live Tab list ping numbers, customizable HUD positioning with click-and-drag, and multiple visual styles.
+
+## Key Features
+
+- **Instant Spike Detection**: Active 500ms ping probing guarantees zero-lag notifications instead of waiting for vanilla Minecraft's 30-second tab ping refresh.
+- **Tactical Alert Banner**: Sleek Valorant/Minecraft-styled HUD banner with sound alert when your ping exceeds your configured baseline threshold.
+- **4 Custom Pixel-Art Network Sprites**: Choose from Signal Bars, Wi-Fi Wave, Disconnected Plug, and Satellite Ping.
+- **Interactive Click & Drag HUD Positioner**: Freely move the Alert Banner and Current Ping element anywhere on your screen.
+- **Current Ping HUD Styling**:
+  - `Translucent`: Clean 50% opacity dark obsidian background.
+  - `Text Only`: Borderless, pure text HUD.
+  - `Fancy Accent`: Translucent background framed with your chosen accent color.
+- **6 Accent Color Themes**: Cyan Blue, Emerald Green, Crimson Red, Gold Yellow, Pure White, and Obsidian Black (saved persistently across restarts).
+- **Tab List Ping Display**:
+  - `Both`: Side-by-side color-coded numbers + vanilla bars.
+  - `Numbers Only`: Clean millisecond numbers.
+  - `Vanilla Bars`: Standard latency icon.
+- **Client-Only & Server-Friendly**: 100% client-side. Requires no server-side mod installation. Safe for vanilla and competitive servers.
 
 ## Requirements
 
 - Minecraft 1.21.11
-- Fabric Loader 0.19.3 or newer for Minecraft 1.21.11
+- Fabric Loader 0.19.3 or newer
 - Fabric API 0.141.6+1.21.11
 - Java 21
-
-This release targets Minecraft 1.21.11 only. The mod is installed only on the client; multiplayer servers do not need it.
 
 ## Installation
 
 1. Install Fabric Loader for Minecraft 1.21.11.
-2. Put Fabric API and `pingspikeindicator-1.0.0.jar` in the client's `mods` folder.
-3. Start the Fabric client and join a multiplayer server.
+2. Place Fabric API and `pingspikeindicator-1.0.0.jar` into your `.minecraft/mods` folder.
+3. Launch Minecraft and join any multiplayer server!
 
-## Usage
+## Configuration
 
-The detector quietly builds its first baseline from five valid ping readings, sampled once per second. A warning then appears only when ping rises by at least the configured threshold. Continued high ping does not repeat the warning; after recovery, a later new spike can warn again.
+Press `O` in-game (or type `/pingspike`) to open the settings menu. You can rebind the hotkey anytime in Minecraft's Controls menu.
 
-Press `O` in game to open settings. The key can be changed under Minecraft's Controls menu.
-
-| Setting | Default | Available values |
+| Setting | Default | Options |
 | --- | --- | --- |
-| Alerts | On | On or off |
-| Spike threshold | 80 ms | 25–500 ms in 5 ms steps |
-| Alert duration | 3 seconds | 2, 3, or 5 seconds |
-| Alert sound | On | On or off |
-| Current ping display | Off | On or off |
+| **Accent Theme** | Cyan Blue | Cyan Blue, Emerald Green, Crimson Red, Gold Yellow, Pure White, Obsidian Black |
+| **Visual Alerts** | On | On / Off |
+| **Alert Icon** | Signal Bars | Signal Bars, Wi-Fi Wave, Plug Disconnect, Satellite Ping |
+| **HUD Anchor Position** | Top Center | Top Center, Top Left, Top Right |
+| **Spike Threshold** | 80 ms | 25–500 ms (in 5 ms increments) |
+| **Alert Duration** | 3 seconds | 2, 3, or 5 seconds |
+| **Alert Sound** | On | On / Off |
+| **Current Ping HUD** | Off | On / Off |
+| **HUD Style** | Translucent | Translucent, Text Only, Fancy Accent |
+| **Tab List Ping** | Both | Both, Numbers Only, Vanilla Bars |
+| **Customize HUD Positions** | — | Interactive click-and-drag screen editor with snap-to-default Reset |
 
-F1 hides both the transient warning and the optional current-ping display with the rest of the normal HUD. Settings are stored locally in `config/pingspikeindicator.properties`. Invalid configuration files safely fall back to defaults.
-
-The mod observes only latency already shown to the client. It does not alter packets, generate probe traffic, diagnose packet loss, or claim a cause for a spike.
+Settings are automatically saved locally in `config/pingspikeindicator.properties`.
 
 ## Build
 
-On Windows:
+To compile from source:
 
+On Windows:
 ```powershell
 .\gradlew.bat clean build
 ```
 
 On macOS or Linux:
-
 ```sh
 ./gradlew clean build
 ```
 
-The distributable JAR is written to `build/libs/pingspikeindicator-1.0.0.jar`.
-
-See the [changelog](CHANGELOG.md), [architecture](docs/ARCHITECTURE.md), [testing guide](docs/TESTING.md), [decisions](docs/DECISIONS.md), [known issues](docs/KNOWN_ISSUES.md), and [project status](status.md) for release details and implementation constraints.
+The compiled mod JAR will be located at `build/libs/pingspikeindicator-1.0.0.jar`.
 
 ## License
 
-This project is available under CC0-1.0. See [LICENSE](LICENSE).
+This project is licensed under CC0-1.0. See [LICENSE](LICENSE).
