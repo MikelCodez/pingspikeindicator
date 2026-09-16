@@ -7,16 +7,12 @@ import dev.mikelcodez.pingspikeindicator.AlertSprite;
 import dev.mikelcodez.pingspikeindicator.CurrentPingStyle;
 import dev.mikelcodez.pingspikeindicator.HudPosition;
 import dev.mikelcodez.pingspikeindicator.PingSpikeConfig;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.InputWithModifiers;
-import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
 /**
@@ -113,45 +109,42 @@ final class HudPositioningScreen extends Screen {
 	}
 
 	@Override
-	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-		if (event.button() == 0) {
-			double mx = event.x();
-			double my = event.y();
-
+	public boolean mouseClicked(double mouseX, double mouseY, int button) {
+		if (button == 0) {
 			// Test Alert Box hit
-			if (mx >= alertBoxX && mx <= alertBoxX + alertBoxW && my >= alertBoxY && my <= alertBoxY + alertBoxH) {
+			if (mouseX >= alertBoxX && mouseX <= alertBoxX + alertBoxW && mouseY >= alertBoxY && mouseY <= alertBoxY + alertBoxH) {
 				activeDrag = DragTarget.ALERT;
-				dragGrabOffsetX = (int) mx - alertBoxX;
-				dragGrabOffsetY = (int) my - alertBoxY;
+				dragGrabOffsetX = (int) mouseX - alertBoxX;
+				dragGrabOffsetY = (int) mouseY - alertBoxY;
 				return true;
 			}
 
 			// Test Current Ping Box hit
-			if (mx >= pingBoxX && mx <= pingBoxX + pingBoxW && my >= pingBoxY && my <= pingBoxY + pingBoxH) {
+			if (mouseX >= pingBoxX && mouseX <= pingBoxX + pingBoxW && mouseY >= pingBoxY && mouseY <= pingBoxY + pingBoxH) {
 				activeDrag = DragTarget.CURRENT_PING;
-				dragGrabOffsetX = (int) mx - pingBoxX;
-				dragGrabOffsetY = (int) my - pingBoxY;
+				dragGrabOffsetX = (int) mouseX - pingBoxX;
+				dragGrabOffsetY = (int) mouseY - pingBoxY;
 				return true;
 			}
 		}
-		return super.mouseClicked(event, doubleClick);
+		return super.mouseClicked(mouseX, mouseY, button);
 	}
 
 	@Override
-	public boolean mouseReleased(MouseButtonEvent event) {
-		if (event.button() == 0) {
+	public boolean mouseReleased(double mouseX, double mouseY, int button) {
+		if (button == 0) {
 			activeDrag = DragTarget.NONE;
 		}
-		return super.mouseReleased(event);
+		return super.mouseReleased(mouseX, mouseY, button);
 	}
 
 	@Override
-	public boolean mouseDragged(MouseButtonEvent event, double deltaX, double deltaY) {
+	public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
 		if (activeDrag == DragTarget.ALERT) {
 			int baseLeft = getBaseAlertLeft(alertBoxW);
 			int baseTop = TOP_MARGIN;
-			int targetX = (int) event.x() - dragGrabOffsetX;
-			int targetY = (int) event.y() - dragGrabOffsetY;
+			int targetX = (int) mouseX - dragGrabOffsetX;
+			int targetY = (int) mouseY - dragGrabOffsetY;
 
 			int clampedX = Mth.clamp(targetX, 2, width - alertBoxW - 2);
 			int clampedY = Mth.clamp(targetY, 2, height - alertBoxH - 40);
@@ -161,8 +154,8 @@ final class HudPositioningScreen extends Screen {
 		} else if (activeDrag == DragTarget.CURRENT_PING) {
 			int baseLeft = CURRENT_PING_MARGIN;
 			int baseTop = CURRENT_PING_MARGIN;
-			int targetX = (int) event.x() - dragGrabOffsetX;
-			int targetY = (int) event.y() - dragGrabOffsetY;
+			int targetX = (int) mouseX - dragGrabOffsetX;
+			int targetY = (int) mouseY - dragGrabOffsetY;
 
 			int clampedX = Mth.clamp(targetX, 2, width - pingBoxW - 2);
 			int clampedY = Mth.clamp(targetY, 2, height - pingBoxH - 40);
@@ -170,7 +163,7 @@ final class HudPositioningScreen extends Screen {
 			workingConfig = workingConfig.withCurrentPingOffset(clampedX - baseLeft, clampedY - baseTop);
 			return true;
 		}
-		return super.mouseDragged(event, deltaX, deltaY);
+		return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
 	}
 
 	private int getBaseAlertLeft(int alertWidth) {
@@ -246,10 +239,10 @@ final class HudPositioningScreen extends Screen {
 
 		// Tactical alert sprite
 		AlertSprite sprite = workingConfig.alertSprite();
-		Identifier spriteId = Identifier.fromNamespaceAndPath("pingspikeindicator", "alert/" + sprite.spritePath());
+		ResourceLocation fullTexture = new ResourceLocation("pingspikeindicator", "textures/gui/sprites/alert/" + sprite.spritePath() + ".png");
 		int spriteX = alertBoxX + PADDING + 1;
 		int spriteY = alertBoxY + (alertBoxH - SPRITE_SIZE) / 2;
-		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, spriteId, spriteX, spriteY, SPRITE_SIZE, SPRITE_SIZE);
+		graphics.blit(fullTexture, spriteX, spriteY, 0, 0, SPRITE_SIZE, SPRITE_SIZE, SPRITE_SIZE, SPRITE_SIZE);
 
 		// Alert text
 		int textX = spriteX + SPRITE_SIZE + 5;
@@ -313,7 +306,7 @@ final class HudPositioningScreen extends Screen {
 		}
 
 		@Override
-		public void onPress(InputWithModifiers input) {
+		public void onPress() {
 			clickAction.accept(this);
 		}
 
@@ -323,7 +316,7 @@ final class HudPositioningScreen extends Screen {
 		}
 
 		@Override
-		protected void renderContents(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+		protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
 			int x = getX();
 			int y = getY();
 			int w = getWidth();

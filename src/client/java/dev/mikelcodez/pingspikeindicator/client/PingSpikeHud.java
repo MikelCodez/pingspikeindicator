@@ -8,19 +8,13 @@ import dev.mikelcodez.pingspikeindicator.CurrentPingStyle;
 import dev.mikelcodez.pingspikeindicator.HudPosition;
 import dev.mikelcodez.pingspikeindicator.PingSpikeAlertState;
 import dev.mikelcodez.pingspikeindicator.PingSpikeConfig;
-import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
+import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 final class PingSpikeHud {
-	private static final Identifier LAYER_ID = Identifier.fromNamespaceAndPath(
-			"pingspikeindicator",
-			"spike_alert"
-	);
 	private static final String TITLE = "PING SPIKE";
 	private static final int TITLE_COLOR = 0xFFFFAA00;
 	private static final int DETAIL_COLOR = 0xFFFFFFFF;
@@ -40,11 +34,10 @@ final class PingSpikeHud {
 	private final CurrentPingDisplayState currentPingState;
 	private final ClientConfigManager configManager;
 
-	private String measuredDetailText = "";
-	private int detailWidth;
-	private int titleWidth;
-	private String measuredCurrentPingText = "";
-	private int currentPingWidth;
+	private String measuredDetailText;
+	private int measuredDetailWidth;
+	private String measuredCurrentPingText;
+	private int measuredCurrentPingWidth;
 
 	PingSpikeHud(
 			Minecraft client,
@@ -61,10 +54,10 @@ final class PingSpikeHud {
 	}
 
 	void register() {
-		HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, LAYER_ID, this::render);
+		HudRenderCallback.EVENT.register((graphics, tickDelta) -> render(graphics));
 	}
 
-	private void render(GuiGraphics graphics, net.minecraft.client.DeltaTracker tickCounter) {
+	private void render(GuiGraphics graphics) {
 		if (client == null || client.options.hideGui) {
 			return;
 		}
@@ -77,14 +70,20 @@ final class PingSpikeHud {
 			return;
 		}
 
+		long now = clock.millis();
 		PingSpikeConfig config = configManager.config();
-		boolean alertVisible = alertState.isVisibleAt(clock.millis());
+		boolean alertVisible = alertState.isVisibleAt(now);
+		boolean currentPingVisible = config.currentPingVisible() && currentPingState.available();
 
-		if (alertVisible && config.alertsEnabled()) {
+		if (!alertVisible && !currentPingVisible) {
+			return;
+		}
+
+		if (alertVisible) {
 			renderAlert(graphics, font, config);
 		}
 
-		if (config.currentPingVisible() && currentPingState.available()) {
+		if (currentPingVisible) {
 			renderCurrentPing(graphics, font, config, alertVisible);
 		}
 	}
@@ -93,17 +92,18 @@ final class PingSpikeHud {
 		String detailText = alertState.detailText();
 		if (!Objects.equals(detailText, measuredDetailText)) {
 			measuredDetailText = detailText;
-			detailWidth = font.width(detailText);
-		}
-		if (titleWidth == 0) {
-			titleWidth = font.width(TITLE);
+			measuredDetailWidth = font.width(detailText);
 		}
 
-		int textWidth = Math.max(titleWidth, detailWidth);
-		int contentWidth = SPRITE_SIZE + 6 + textWidth;
-		int width = contentWidth + PADDING * 2;
+		int titleWidth = font.width(TITLE);
+		int textBlockWidth = Math.max(titleWidth, measuredDetailWidth);
 		int textBlockHeight = font.lineHeight * 2 + LINE_GAP;
-		int height = Math.max(SPRITE_SIZE, textBlockHeight) + PADDING * 2;
+
+		int contentWidth = SPRITE_SIZE + 6 + textBlockWidth;
+		int contentHeight = Math.max(SPRITE_SIZE, textBlockHeight);
+
+		int width = contentWidth + PADDING * 2;
+		int height = contentHeight + PADDING * 2;
 
 		int baseLeft;
 		HudPosition position = config.hudPosition();
@@ -126,10 +126,10 @@ final class PingSpikeHud {
 
 		// Render tactical alert sprite
 		AlertSprite sprite = config.alertSprite();
-		Identifier spriteId = Identifier.fromNamespaceAndPath("pingspikeindicator", "alert/" + sprite.spritePath());
+		ResourceLocation fullTexture = new ResourceLocation("pingspikeindicator", "textures/gui/sprites/alert/" + sprite.spritePath() + ".png");
 		int spriteX = left + PADDING + 1;
 		int spriteY = top + (height - SPRITE_SIZE) / 2;
-		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, spriteId, spriteX, spriteY, SPRITE_SIZE, SPRITE_SIZE);
+		graphics.blit(fullTexture, spriteX, spriteY, 0, 0, SPRITE_SIZE, SPRITE_SIZE, SPRITE_SIZE, SPRITE_SIZE);
 
 		// Render text block
 		int textX = spriteX + SPRITE_SIZE + 5;
@@ -149,37 +149,30 @@ final class PingSpikeHud {
 		String currentPingText = currentPingState.text();
 		if (!Objects.equals(currentPingText, measuredCurrentPingText)) {
 			measuredCurrentPingText = currentPingText;
-			currentPingWidth = font.width(currentPingText);
+			measuredCurrentPingWidth = font.width(currentPingText);
 		}
+
+		CurrentPingStyle style = config.currentPingStyle();
 
 		int baseLeft = CURRENT_PING_MARGIN;
 		int baseTop = CURRENT_PING_MARGIN;
-		// Avoid overlapping alert if alert is also in TOP_LEFT and no custom offset was set
-		if (alertVisible && config.hudPosition() == HudPosition.TOP_LEFT && config.currentPingOffsetX() == 0 && config.currentPingOffsetY() == 0) {
-			baseTop = TOP_MARGIN + PADDING * 2 + Math.max(SPRITE_SIZE, font.lineHeight * 2 + LINE_GAP) + 6;
-		}
 
-		int left = baseLeft + config.currentPingOffsetX();
-		int top = baseTop + config.currentPingOffsetY();
-		CurrentPingStyle style = config.currentPingStyle();
+		int x = baseLeft + config.currentPingOffsetX();
+		int y = baseTop + config.currentPingOffsetY();
 
 		if (style == CurrentPingStyle.TEXT_ONLY) {
-			graphics.drawString(font, currentPingText, left, top, DETAIL_COLOR, true);
+			graphics.drawString(font, currentPingText, x, y, DETAIL_COLOR, true);
 			return;
 		}
 
-		int right = left + currentPingWidth + PADDING * 2;
-		int bottom = top + font.lineHeight + PADDING * 2;
+		int width = measuredCurrentPingWidth + PADDING * 2;
+		int height = font.lineHeight + PADDING * 2;
 
-		// Background
-		graphics.fill(left, top, right, bottom, CURRENT_PING_BACKGROUND);
+		graphics.fill(x, y, x + width, y + height, CURRENT_PING_BACKGROUND);
 
-		// Fancy accent border
-		if (style == CurrentPingStyle.FANCY_ACCENT) {
-			int accent = config.accentTheme().accent();
-			graphics.renderOutline(left, top, right - left, bottom - top, accent);
-		}
+		int borderColor = (style == CurrentPingStyle.FANCY_ACCENT) ? config.accentTheme().accent() : 0x80353A47;
+		graphics.renderOutline(x, y, width, height, borderColor);
 
-		graphics.drawString(font, currentPingText, left + PADDING, top + PADDING, DETAIL_COLOR, true);
+		graphics.drawString(font, currentPingText, x + PADDING, y + PADDING, DETAIL_COLOR, true);
 	}
 }

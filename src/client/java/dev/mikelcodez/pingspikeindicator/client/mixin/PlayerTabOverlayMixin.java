@@ -46,7 +46,7 @@ public class PlayerTabOverlayMixin {
 
 		int ping = playerInfo.getLatency();
 		// If this is the local player and we have a live real-time latency probe, use it!
-		if (client.player != null && client.player.getUUID().equals(playerInfo.getProfile().id())) {
+		if (client.player != null && client.player.getUUID().equals(playerInfo.getProfile().getId())) {
 			ClientPingCapture capture = ClientPingCapture.getActive();
 			if (capture != null && capture.latestRealTimeLatencyMs() >= 0) {
 				ping = capture.latestRealTimeLatencyMs();

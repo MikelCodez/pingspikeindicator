@@ -14,7 +14,7 @@ final class PingSpikeConfigControls {
 			"key.pingspikeindicator.open_config",
 			InputConstants.Type.KEYSYM,
 			GLFW.GLFW_KEY_O,
-			KeyMapping.Category.MISC
+			KeyMapping.CATEGORY_MISC
 	);
 
 	PingSpikeConfigControls(ClientConfigManager configManager, ClientPingCapture pingCapture) {

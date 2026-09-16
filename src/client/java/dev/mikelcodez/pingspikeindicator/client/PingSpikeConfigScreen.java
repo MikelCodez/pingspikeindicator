@@ -17,12 +17,9 @@ import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.InputWithModifiers;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 
@@ -308,43 +305,43 @@ final class PingSpikeConfigScreen extends Screen {
 	}
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
+	public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
 		if (maxScroll > 0 && mouseY >= contentTop && mouseY <= contentBottom) {
-			scrollAmount = Mth.clamp(scrollAmount - verticalAmount * 18.0, 0.0, maxScroll);
+			scrollAmount = Mth.clamp(scrollAmount - delta * 18.0, 0.0, maxScroll);
 			updateScrollPositions();
 			return true;
 		}
-		return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
+		return super.mouseScrolled(mouseX, mouseY, delta);
 	}
 
 	@Override
-	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-		if (maxScroll > 0 && event.button() == 0) {
+	public boolean mouseClicked(double mouseX, double mouseY, int button) {
+		if (maxScroll > 0 && button == 0) {
 			int scrollBarX = modalLeft + MODAL_WIDTH - 8;
-			if (event.x() >= scrollBarX - 4 && event.x() <= scrollBarX + 8 && event.y() >= contentTop && event.y() <= contentBottom) {
+			if (mouseX >= scrollBarX - 4 && mouseX <= scrollBarX + 8 && mouseY >= contentTop && mouseY <= contentBottom) {
 				isDraggingScrollBar = true;
-				updateScrollFromMouse(event.y());
+				updateScrollFromMouse(mouseY);
 				return true;
 			}
 		}
-		return super.mouseClicked(event, doubleClick);
+		return super.mouseClicked(mouseX, mouseY, button);
 	}
 
 	@Override
-	public boolean mouseReleased(MouseButtonEvent event) {
-		if (event.button() == 0) {
+	public boolean mouseReleased(double mouseX, double mouseY, int button) {
+		if (button == 0) {
 			isDraggingScrollBar = false;
 		}
-		return super.mouseReleased(event);
+		return super.mouseReleased(mouseX, mouseY, button);
 	}
 
 	@Override
-	public boolean mouseDragged(MouseButtonEvent event, double deltaX, double deltaY) {
+	public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
 		if (isDraggingScrollBar && maxScroll > 0) {
-			updateScrollFromMouse(event.y());
+			updateScrollFromMouse(mouseY);
 			return true;
 		}
-		return super.mouseDragged(event, deltaX, deltaY);
+		return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
 	}
 
 	private void updateScrollFromMouse(double mouseY) {
@@ -443,10 +440,11 @@ final class PingSpikeConfigScreen extends Screen {
 
 		// Sprite
 		AlertSprite sprite = workingConfig.alertSprite();
-		Identifier spriteId = Identifier.fromNamespaceAndPath("pingspikeindicator", "alert/" + sprite.spritePath());
+		ResourceLocation spriteId = new ResourceLocation("pingspikeindicator", "alert/" + sprite.spritePath());
 		int spriteX = bannerX + 4;
 		int spriteY = bannerY + (bannerH - PREVIEW_SPRITE_SIZE) / 2;
-		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, spriteId, spriteX, spriteY, PREVIEW_SPRITE_SIZE, PREVIEW_SPRITE_SIZE);
+		ResourceLocation fullTexture = new ResourceLocation("pingspikeindicator", "textures/gui/sprites/alert/" + sprite.spritePath() + ".png");
+		graphics.blit(fullTexture, spriteX, spriteY, 0, 0, PREVIEW_SPRITE_SIZE, PREVIEW_SPRITE_SIZE, PREVIEW_SPRITE_SIZE, PREVIEW_SPRITE_SIZE);
 
 		// Text
 		int textX = spriteX + PREVIEW_SPRITE_SIZE + 5;
@@ -510,7 +508,7 @@ final class PingSpikeConfigScreen extends Screen {
 		}
 
 		@Override
-		public void onPress(InputWithModifiers input) {
+		public void onPress() {
 			clickAction.accept(this);
 		}
 
@@ -520,7 +518,7 @@ final class PingSpikeConfigScreen extends Screen {
 		}
 
 		@Override
-		protected void renderContents(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+		protected void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
 			int x = getX();
 			int y = getY();
 			int w = getWidth();

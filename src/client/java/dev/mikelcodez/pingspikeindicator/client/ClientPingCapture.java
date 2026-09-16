@@ -7,15 +7,14 @@ import dev.mikelcodez.pingspikeindicator.PingSpikeAlertState;
 import dev.mikelcodez.pingspikeindicator.PingSpikeConfig;
 import dev.mikelcodez.pingspikeindicator.PingSpikeDetector;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientWorldEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
-import net.minecraft.network.protocol.ping.ServerboundPingRequestPacket;
+import net.minecraft.network.protocol.game.ServerboundPongPacket;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.util.Util;
+import net.minecraft.Util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +60,6 @@ public final class ClientPingCapture {
 		ClientTickEvents.END_CLIENT_TICK.register(this::onEndClientTick);
 		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> endSession());
 		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> endSession());
-		ClientWorldEvents.AFTER_CLIENT_WORLD_CHANGE.register((client, world) -> resetActiveSession());
 		LOGGER.info("Ping capture initialized with live {} ms probe interval", LIVE_PING_PROBE_INTERVAL_MILLIS);
 	}
 
@@ -81,20 +79,25 @@ public final class ClientPingCapture {
 			return;
 		}
 
-		// Actively send live ping request packet every 500ms
-		long now = Util.getMillis();
-		if (now - lastProbeSentTimeMillis >= LIVE_PING_PROBE_INTERVAL_MILLIS) {
-			ClientPacketListener connection = client.getConnection();
-			if (connection != null) {
-				connection.send(new ServerboundPingRequestPacket(now));
-				lastProbeSentTimeMillis = now;
+		// In 1.20.1: poll player info latency from connection
+		ClientPacketListener connection = client.getConnection();
+		if (connection != null && client.player != null) {
+			PlayerInfo info = connection.getPlayerInfo(client.player.getUUID());
+			if (info != null) {
+				int latency = info.getLatency();
+				if (latency >= 0) {
+					onRealTimePongReceived(latency);
+				}
 			}
 		}
 	}
 
+	public void onPingPacketReceived(int packetId) {
+		// Server ping packet received
+	}
+
 	/**
-	 * Called immediately when the server responds with ClientboundPongResponsePacket.
-	 * This executes directly in real-time, bypassing any slow tab latency polling!
+	 * Called immediately when latency sample is received.
 	 */
 	public void onRealTimePongReceived(int realTimeLatencyMs) {
 		if (realTimeLatencyMs < 0) {
