@@ -13,6 +13,9 @@
 	"entrypoints": {
 		"client": [
 			"dev.mikelcodez.pingspikeindicator.client.PingSpikeIndicatorClient"
+		],
+		"modmenu": [
+			"dev.mikelcodez.pingspikeindicator.client.ModMenuIntegration"
 		]
 	},
 	"mixins": [

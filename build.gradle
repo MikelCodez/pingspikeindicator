@@ -93,8 +93,8 @@ tasks.register("verifyClientOnlyMetadata") {
 		}
 
 		def entrypointKinds = (metadata.entrypoints ?: [:]).keySet() as Set
-		if (entrypointKinds != (["client"] as Set)) {
-			throw new GradleException("fabric.mod.json must contain only a client entrypoint")
+		if (entrypointKinds != (["client", "modmenu"] as Set) && entrypointKinds != (["client"] as Set)) {
+			throw new GradleException("fabric.mod.json must contain only client and modmenu entrypoints")
 		}
 	}
 }
@@ -121,6 +121,8 @@ jar {
 	from("LICENSE") {
 		rename { "${it}_$projectName"}
 	}
+
+	exclude "com/terraformersmc/modmenu/api/**"
 }
 
 // configure the maven publication
