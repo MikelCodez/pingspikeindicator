@@ -37,7 +37,6 @@ final class HudPositioningScreen extends Screen {
 	private final Consumer<PingSpikeConfig> saveAction;
 	private PingSpikeConfig workingConfig;
 
-	// Dragging state
 	private enum DragTarget {
 		NONE,
 		ALERT,
@@ -48,7 +47,6 @@ final class HudPositioningScreen extends Screen {
 	private int dragGrabOffsetX = 0;
 	private int dragGrabOffsetY = 0;
 
-	// Cached bounding boxes for rendering & hit testing
 	private int alertBoxX;
 	private int alertBoxY;
 	private int alertBoxW;
@@ -75,7 +73,6 @@ final class HudPositioningScreen extends Screen {
 		int totalWidth = buttonWidth * 2 + gap;
 		int startX = (width - totalWidth) / 2;
 
-		// Reset Positions Button
 		addRenderableWidget(new EditorButton(
 				startX,
 				bottomY,
@@ -91,7 +88,6 @@ final class HudPositioningScreen extends Screen {
 				0xFFE0E5EE
 		));
 
-		// Done / Save Button
 		addRenderableWidget(new EditorButton(
 				startX + buttonWidth + gap,
 				bottomY,
@@ -118,7 +114,6 @@ final class HudPositioningScreen extends Screen {
 			double mx = event.x();
 			double my = event.y();
 
-			// Test Alert Box hit
 			if (mx >= alertBoxX && mx <= alertBoxX + alertBoxW && my >= alertBoxY && my <= alertBoxY + alertBoxH) {
 				activeDrag = DragTarget.ALERT;
 				dragGrabOffsetX = (int) mx - alertBoxX;
@@ -126,7 +121,6 @@ final class HudPositioningScreen extends Screen {
 				return true;
 			}
 
-			// Test Current Ping Box hit
 			if (mx >= pingBoxX && mx <= pingBoxX + pingBoxW && my >= pingBoxY && my <= pingBoxY + pingBoxH) {
 				activeDrag = DragTarget.CURRENT_PING;
 				dragGrabOffsetX = (int) mx - pingBoxX;
@@ -184,27 +178,24 @@ final class HudPositioningScreen extends Screen {
 
 	@Override
 	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-		// Subtle dark overlay to see HUD clearly over game world
 		graphics.fill(0, 0, width, height, 0x40000000);
 
-		// Top Instruction Text
 		String instruction = "Click and drag HUD elements to customize their positions";
 		graphics.drawCenteredString(font, instruction, width / 2, 10, 0xFFE0E5EE);
 
 		computeBoundingBoxes();
 
-		// Render Alert Banner
+		
 		renderAlertBox(graphics, mouseX, mouseY);
 
-		// Render Current Ping Box
+		
 		renderPingBox(graphics, mouseX, mouseY);
 
-		// Render buttons
+		
 		super.render(graphics, mouseX, mouseY, partialTick);
 	}
 
 	private void computeBoundingBoxes() {
-		// 1. Alert dimensions
 		int titleWidth = font.width(ALERT_TITLE);
 		int detailWidth = font.width(ALERT_DETAIL);
 		int textWidth = Math.max(titleWidth, detailWidth);
@@ -218,7 +209,6 @@ final class HudPositioningScreen extends Screen {
 		alertBoxX = baseAlertLeft + workingConfig.alertOffsetX();
 		alertBoxY = baseAlertTop + workingConfig.alertOffsetY();
 
-		// 2. Ping dimensions
 		int textW = font.width(PING_SAMPLE_TEXT);
 		CurrentPingStyle style = workingConfig.currentPingStyle();
 		if (style == CurrentPingStyle.TEXT_ONLY) {
@@ -238,26 +228,22 @@ final class HudPositioningScreen extends Screen {
 	private void renderAlertBox(GuiGraphics graphics, int mouseX, int mouseY) {
 		boolean hovered = mouseX >= alertBoxX && mouseX <= alertBoxX + alertBoxW && mouseY >= alertBoxY && mouseY <= alertBoxY + alertBoxH;
 
-		// Alert background & borders
 		graphics.fill(alertBoxX, alertBoxY, alertBoxX + alertBoxW, alertBoxY + alertBoxH, 0xEE0C0E14);
 		int borderColor = (activeDrag == DragTarget.ALERT || hovered) ? 0xFFFFFFFF : 0xFFD95721;
 		graphics.renderOutline(alertBoxX, alertBoxY, alertBoxW, alertBoxH, borderColor);
 		graphics.renderOutline(alertBoxX + 1, alertBoxY + 1, alertBoxW - 2, alertBoxH - 2, 0xFF801A0A);
 
-		// Tactical alert sprite
 		AlertSprite sprite = workingConfig.alertSprite();
 		Identifier spriteId = Identifier.fromNamespaceAndPath("pingspikeindicator", "alert/" + sprite.spritePath());
 		int spriteX = alertBoxX + PADDING + 1;
 		int spriteY = alertBoxY + (alertBoxH - SPRITE_SIZE) / 2;
 		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, spriteId, spriteX, spriteY, SPRITE_SIZE, SPRITE_SIZE);
 
-		// Alert text
 		int textX = spriteX + SPRITE_SIZE + 5;
 		int textY = alertBoxY + (alertBoxH - (font.lineHeight * 2 + LINE_GAP)) / 2;
 		graphics.drawString(font, ALERT_TITLE, textX, textY, 0xFFFFAA00, true);
 		graphics.drawString(font, ALERT_DETAIL, textX, textY + font.lineHeight + LINE_GAP, 0xFFFFFFFF, true);
 
-		// Drag handle hint
 		if (hovered || activeDrag == DragTarget.ALERT) {
 			graphics.renderOutline(alertBoxX - 2, alertBoxY - 2, alertBoxW + 4, alertBoxH + 4, workingConfig.accentTheme().accent());
 		}
@@ -276,7 +262,6 @@ final class HudPositioningScreen extends Screen {
 			return;
 		}
 
-		// Background
 		graphics.fill(pingBoxX, pingBoxY, pingBoxX + pingBoxW, pingBoxY + pingBoxH, 0xEE0C0E14);
 
 		int borderColor;

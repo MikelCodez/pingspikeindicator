@@ -65,10 +65,7 @@ final class PingSpikeHud {
 	}
 
 	private void render(GuiGraphics graphics, net.minecraft.client.DeltaTracker tickCounter) {
-		if (client == null || client.options.hideGui) {
-			return;
-		}
-		if (client.screen != null) {
+		if (client == null || client.options.hideGui || client.screen != null) {
 			return;
 		}
 
@@ -119,19 +116,19 @@ final class PingSpikeHud {
 		int right = left + width;
 		int bottom = top + height;
 
-		// Blocky alert panel backdrop and borders
+		// Alert box background & outline
 		graphics.fill(left, top, right, bottom, BACKGROUND_COLOR);
 		graphics.renderOutline(left, top, width, height, BORDER_COLOR);
 		graphics.renderOutline(left + 1, top + 1, width - 2, height - 2, BORDER_INNER_COLOR);
 
-		// Render tactical alert sprite
+		// Alert sprite icon
 		AlertSprite sprite = config.alertSprite();
 		Identifier spriteId = Identifier.fromNamespaceAndPath("pingspikeindicator", "alert/" + sprite.spritePath());
 		int spriteX = left + PADDING + 1;
 		int spriteY = top + (height - SPRITE_SIZE) / 2;
 		graphics.blitSprite(RenderPipelines.GUI_TEXTURED, spriteId, spriteX, spriteY, SPRITE_SIZE, SPRITE_SIZE);
 
-		// Render text block
+		// Alert text
 		int textX = spriteX + SPRITE_SIZE + 5;
 		int textY = top + (height - textBlockHeight) / 2;
 		graphics.drawString(font, TITLE, textX, textY, TITLE_COLOR, true);
@@ -154,7 +151,7 @@ final class PingSpikeHud {
 
 		int baseLeft = CURRENT_PING_MARGIN;
 		int baseTop = CURRENT_PING_MARGIN;
-		// Avoid overlapping alert if alert is also in TOP_LEFT and no custom offset was set
+
 		if (alertVisible && config.hudPosition() == HudPosition.TOP_LEFT && config.currentPingOffsetX() == 0 && config.currentPingOffsetY() == 0) {
 			baseTop = TOP_MARGIN + PADDING * 2 + Math.max(SPRITE_SIZE, font.lineHeight * 2 + LINE_GAP) + 6;
 		}
@@ -171,10 +168,8 @@ final class PingSpikeHud {
 		int right = left + currentPingWidth + PADDING * 2;
 		int bottom = top + font.lineHeight + PADDING * 2;
 
-		// Background
 		graphics.fill(left, top, right, bottom, CURRENT_PING_BACKGROUND);
 
-		// Fancy accent border
 		if (style == CurrentPingStyle.FANCY_ACCENT) {
 			int accent = config.accentTheme().accent();
 			graphics.renderOutline(left, top, right - left, bottom - top, accent);
