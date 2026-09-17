@@ -357,14 +357,17 @@ body {
 
 .theme-btn {
   background: var(--bg-card);
-  color: var(--text-main);
+  color: var(--text-muted);
   border: 1px solid var(--border-color);
-  padding: 6px 14px;
+  padding: 7px 14px;
   border-radius: var(--radius-sm);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 700;
   cursor: pointer;
   position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   transition: all 0.2s ease;
 }
 
@@ -375,12 +378,28 @@ body {
   height: 8px;
   border-radius: 50%;
   background: var(--accent);
-  margin-right: 6px;
+  box-shadow: 0 0 6px var(--accent);
+}
+
+.theme-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-main);
+  border-color: var(--border-light);
+  transform: translateY(-1px);
 }
 
 .theme-btn.active {
+  background: rgba(255, 255, 255, 0.08);
+  color: #FFFFFF;
   border-color: var(--accent);
-  box-shadow: 0 0 10px rgba(255,255,255,0.1);
+  box-shadow: 0 0 14px var(--accent-glow, rgba(255, 255, 255, 0.25));
+}
+
+.theme-btn[data-theme="white"].active {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: #FFFFFF;
+  color: #FFFFFF;
+  box-shadow: 0 0 16px rgba(255, 255, 255, 0.7);
 }
 
 .test-spike-btn {
